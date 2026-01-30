@@ -9,7 +9,7 @@ of tooling to run claude-code and integrate it with devenv. I've not read throug
 has been extracted yet by the claude-code with full gregarious context; before I do
 that I'll prompt stage0-check.md on an agent isolated to this directory.
 
-[Conversation](conversations/001-check-initial-state)
+[Experiment 001](experiments/001-check-initial-state)
 
 The conversation indicates that the artifacts are generally coherent, however work was not completed on disambiguating lifecycle and maturity. These two terms are confused together and the implementation lacks a mechanism to set the fields properly.
 
