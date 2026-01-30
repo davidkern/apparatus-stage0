@@ -2,7 +2,7 @@
 
 We are investigating the question: **what does a minimal stage 0 apparatus look like?**
 
-Our method: write a hypothesis (the `apparatus.md` document), test it by giving it to a scope-limited agent as a practitioner, observe what happens, refine, repeat. Each round is an experiment. The practitioner agent sees only `/apparatus`; it does not see this guide or any of our notes.
+Our method: write a hypothesis (the `apparatus.md` document), test it by giving it to a scope-limited agent as a practitioner, observe what happens, refine, repeat. Each round is an experiment. The practitioner agent is sandboxed to the `apparatus/` directory; it does not see this guide or any of our notes.
 
 ## The Bootstrap Problem
 
@@ -19,21 +19,21 @@ The Apparatus is a system for making design decisions with structured evidence. 
 ### Experiment model
 
 - **Hypothesis**: The current `apparatus.md` is sufficient for a practitioner to execute a design task.
-- **Practitioner**: A Claude agent scoped to `/apparatus` only. Fresh session each attempt. No access to this guide, no access to prior conversation history.
+- **Practitioner**: A Claude agent sandboxed to `apparatus/`. Fresh session each attempt. No access to this guide, no access to prior conversation history.
 - **Observation**: What did the practitioner create? Where did they get stuck? Where did they deviate from the procedures? What did they produce that doesn't match expectations?
 
 ### Running an experiment
 
-Each experiment follows this procedure. The `/apparatus` repo's `main` branch holds the current best `apparatus.md` plus tooling (devenv, claude config). `main` evolves as we incorporate findings. Experiment conditions and results live on named branches, preserving the exact state the agent saw.
+Each experiment follows this procedure. The `apparatus/` repo's `main` branch holds the current best `apparatus.md` plus tooling (devenv, claude config). `main` evolves as we incorporate findings. Experiment conditions and results live on named branches, preserving the exact state the agent saw.
 
 **1. Plan the experiment**
 
-Decide what changed since the last attempt and what we expect to learn. Record the experiment name (used as both the branch name in `/apparatus` and the directory name in `/experiments/`).
+Decide what changed since the last attempt and what we expect to learn. Record the experiment name (used as both the branch name in `apparatus/` and the directory name in `experiments/`).
 
-**2. Set up experiment conditions** (in `/apparatus`)
+**2. Set up experiment conditions** (in `apparatus/`)
 
 ```bash
-cd /apparatus
+cd apparatus
 git checkout main
 git checkout -b <experiment-name>
 ```
@@ -49,24 +49,24 @@ This commit is the controlled starting state. The practitioner agent will work f
 
 **3. Run the experiment**
 
-Launch a practitioner agent scoped to `/apparatus/` with the experiment prompt. The prompt can vary per experiment but the standard stage 0 prompt is:
+Launch a practitioner session using the `practitioner` script. The prompt can vary per experiment but the standard stage 0 prompt is:
 
-> Read /apparatus/apparatus.md. It describes a knowledge management process.
+> Read apparatus.md. It describes a knowledge management process.
 >
 > You are going to use this process for a real design task. The task: **[scope statement]**
 >
-> Follow the procedures in apparatus.md literally. Create all files and directories as described under /apparatus/. When the procedures say to set frontmatter fields, set them. When they say to write prose, write it.
+> Follow the procedures in apparatus.md literally. Create all files and directories it describes. When the procedures say to set frontmatter fields, set them. When they say to write prose, write it.
 >
 > When you encounter friction -- a procedure that's ambiguous, a term that's unclear, a step that seems wrong -- note it in the design document as an open question, then continue. Your confusion is valuable data. Do not stop to fix apparatus.md; finish the design task first.
 >
-> IMPORTANT: All files you create must be under /apparatus/. Do not create files elsewhere.
+> IMPORTANT: All files you create must be in the current directory tree. Do not create files elsewhere.
 
-**4. Commit experimental results** (in `/apparatus`)
+**4. Commit experimental results** (in `apparatus/`)
 
 After the agent finishes, commit everything it created:
 
 ```bash
-cd /apparatus
+cd apparatus
 git add -A
 git commit -m "experimental results"
 ```
@@ -75,7 +75,7 @@ The branch now has two commits: conditions and results. These can be inspected l
 
 **5. Record in research notes**
 
-Create `/experiments/<experiment-name>/` with two files:
+Create `experiments/<experiment-name>/` with two files:
 
 - **`log.md`** -- The conversation: prompt given to the agent, and the agent's full response (including friction points and summary). This is the raw data.
 - **`evaluation.md`** -- Our analysis: what worked, what didn't, what it means, what to change next. This is where researcher judgment lives.
@@ -105,7 +105,7 @@ Three categories of findings, mapped to what they tell us:
 
 Do NOT give the practitioner this research guide, findings tables, exit criteria, or any meta-commentary about the bootstrap. The practitioner should work from `apparatus.md` alone. Including our research notes contaminates the experiment -- the practitioner's evaluation gets primed by our expectations.
 
-When running via Claude Code's Task tool, the agent inherits the parent working directory (`/work`). The prompt must use explicit absolute paths (`/apparatus/apparatus.md`, create files under `/apparatus/`). The agent is not truly sandboxed to `/apparatus` -- it can technically read other directories -- but it will stay scoped if the prompt only references `/apparatus/`.
+The practitioner runs inside a bubblewrap sandbox (via the `practitioner` script) with the `apparatus/` directory as its working directory. The sandbox restricts filesystem access to the apparatus directory, the nix store, and a persistent home directory for configuration. The practitioner cannot see the research notes or project root.
 
 ## Exit Criteria
 
