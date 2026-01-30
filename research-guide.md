@@ -30,6 +30,8 @@ Each experiment follows this procedure. The `apparatus/` repo's `main` branch ho
 
 Decide what changed since the last attempt and what we expect to learn. Record the experiment name (used as both the branch name in `apparatus/` and the directory name in `experiments/`).
 
+Create `experiments/<experiment-name>/plan.md` documenting: what changed, what we expect to learn, the design task, and any known issues carried forward. This is written before the experiment runs so expectations are recorded, not reconstructed.
+
 **2. Set up experiment conditions** (in `apparatus/`)
 
 ```bash
