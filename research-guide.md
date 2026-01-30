@@ -207,21 +207,35 @@ First real design task using merged apparatus.md. Agent produced 21 files follow
 
 Details: [experiments/002-first-stage0-attempt/](experiments/002-first-stage0-attempt/)
 
+### Experiment 003: review-gates
+
+Tested behavioral review gates: added `review` status to Design lifecycle with halt instructions at two points (after scoping, after investigations complete). **Agent recognized the gates, identified the single-actor deadlock, performed "self-review," and continued.** Behavioral halt instructions are insufficient — review gates must be enforced structurally by the runner, not by the agent's self-discipline. Invalidated assumption that apparatus.md alone is sufficient for controlled execution. Stage 0 requires a small amount of programmatic structure.
+
+Secondary: agent scoped more tightly than 002 (14 files vs 21, 3 deferred questions). Fabricated experiments persist (carried forward, not addressed). Six friction points reported, four new.
+
+Details: [experiments/003-review-gates/](experiments/003-review-gates/)
+
 ### Next experiment: planned changes
 
-**Must fix in apparatus.md**:
+**Must build**:
+- A runner that enforces review gates structurally — terminates the practitioner session when a Design enters `review`, resumes after external status change.
+
+**Must fix in apparatus.md** (carried forward from 002):
 - Add experiment validity rule: "An Experiment must be executed, not merely analyzed."
 - Add reverse transition procedure for experimenting → researching.
 - Add procedure for propagating investigation open questions to parent design.
+- Fix ID assignment: max existing ID + 1 instead of count.
 
 **Should consider**:
-- Rethink confidence scale for non-experimental investigations.
-- Add brief proportionality note.
-- Create `experiments/` subdirectory only when needed.
+- Remove "someone else" language from review gates — describe state semantics, not enforcement.
+- Simplify review → open → waiting transition sequence.
+- Anchor evidence ref paths.
+- Clarify open-questions shape difference between Investigation and Design.
 
-**Need more data**:
-- Cross-investigation coordination. May be inherent to the model.
-- Multi-investigation tracking. May just need a clarifying sentence.
+**Carried forward (need more data)**:
+- Rethink confidence scale for non-experimental investigations.
+- Cross-investigation coordination.
+- Proportionality note.
 
 ## Bootstrap Assumptions
 
@@ -232,3 +246,4 @@ Details: [experiments/002-first-stage0-attempt/](experiments/002-first-stage0-at
 | Manual procedures are detailed enough to follow | live | Practitioner encounters ambiguity not resolvable from apparatus.md | Revise procedures in apparatus.md |
 | Experiments can be deferred from stage 0 | live | Stage 1 design task requires experimental validation that the process can't express | Re-add Experiment to apparatus.md |
 | Quality hypotheses can be deferred from stage 0 | invalidated (002) | Practitioner produces low-quality output because no quality guidance exists | Selectively re-add guidance to apparatus.md |
+| apparatus.md alone is sufficient for controlled execution | invalidated (003) | Agent reasons past behavioral halt instructions | Stage 0 requires a runner that enforces review gates structurally |
