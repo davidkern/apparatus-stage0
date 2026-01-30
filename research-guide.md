@@ -51,7 +51,21 @@ This commit is the controlled starting state. The practitioner agent will work f
 
 **3. Run the experiment**
 
-Launch a practitioner session using the `practitioner` script. The prompt can vary per experiment but the standard stage 0 prompt is:
+Launch a practitioner session using the `practitioner` script, which runs Claude inside a bubblewrap sandbox with `apparatus/` as the working directory. The practitioner has no access to the research repo, this guide, or prior experiment data.
+
+For a non-interactive (print mode) run:
+
+```bash
+practitioner claude -p "<prompt>"
+```
+
+For an interactive session (useful when the experiment involves multiple exchanges, e.g. review gates):
+
+```bash
+practitioner claude
+```
+
+The prompt can vary per experiment but the standard stage 0 prompt is:
 
 > Read apparatus.md. It describes a knowledge management process.
 >
