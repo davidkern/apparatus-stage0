@@ -3,9 +3,13 @@ set -euo pipefail
 
 # Bubble sandbox - runs commands in an isolated bubblewrap environment
 #
+# Resolves the apparatus devenv profile outside the bubble and constructs PATH
+# from it, so we don't depend on `devenv shell` as the entry mechanism.
+# The apparatus devenv.nix remains the source of truth for what tools the agent
+# gets — we just resolve it before entering the container.
+#
 # Uses a persistent home directory at .devenv/state/gregarious/home so that
 # Claude plugins, conversation history, and credentials persist between sessions.
-# Users configure their own credentials directly in the project home directory.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -15,8 +19,14 @@ if [[ -z "${DEVENV_ROOT:-}" ]]; then
     exit 1
 fi
 
-# Source directory to bind as workspace (default: DEVENV_ROOT)
-BUBBLE_SRC="${BUBBLE_SRC:-$DEVENV_ROOT}"
+APPARATUS_DIR="$DEVENV_ROOT/apparatus"
+APPARATUS_PROFILE="$APPARATUS_DIR/.devenv/profile"
+
+if [[ ! -d "$APPARATUS_PROFILE" ]]; then
+    echo "Error: Apparatus devenv profile not found at $APPARATUS_PROFILE" >&2
+    echo "Run 'cd apparatus && devenv shell -- true' to build it first." >&2
+    exit 1
+fi
 
 # Persistent home directory within project state
 BUBBLE_STATE="$DEVENV_ROOT/.devenv/state/gregarious"
@@ -30,103 +40,48 @@ fi
 
 # Ephemeral tmp directory for session isolation (cleaned on exit)
 SESSION_TMP=$(mktemp -d /tmp/bubble-tmp.XXXXXXXXXX)
-BUBBLE_TMP="$SESSION_TMP"
-
 cleanup() { rm -rf "$SESSION_TMP"; }
 trap cleanup EXIT
 
-# Determine network status (default: deny)
-case "${BUBBLE_NETWORK:-deny}" in
-    allow)
-        BUBBLE_INDICATOR="🔮"  # crystal ball = can see out (network)
-        NETWORK_MODE="allow"
-        ;;
-    deny|"")
-        BUBBLE_INDICATOR="🫧"  # bubble = contained (isolated)
-        NETWORK_MODE="deny"
-        ;;
-    *)
-        echo "Error: BUBBLE_NETWORK must be 'allow' or 'deny', got '${BUBBLE_NETWORK}'" >&2
-        exit 1
-        ;;
-esac
+# Resolve apparatus profile bin and prepend to host PATH
+# All PATH entries are nix store or system paths that are mounted into the bubble
+BUBBLE_PATH="$APPARATUS_PROFILE/bin:$PATH"
 
-# Workspace path (neutral location that doesn't leak real home)
-WORKSPACE="/apparatus"
+# Collect DEVENV_* variable names to unset inside the bubble
+DEVENV_UNSETS=()
+while IFS= read -r var; do
+    DEVENV_UNSETS+=(--unsetenv "$var")
+done < <(env | grep -oP '^DEVENV_[^=]+' || true)
 
-# Compute relative path from BUBBLE_SRC to current directory
-if [[ "$(pwd)" == "$BUBBLE_SRC"* ]]; then
-    REL_PATH="${PWD#"$BUBBLE_SRC"}"
-    BUBBLE_CWD="$WORKSPACE$REL_PATH"
-else
-    # Outside source root - use workspace root
-    BUBBLE_CWD="$WORKSPACE"
-fi
-
-# Core bwrap arguments
 BWRAP_ARGS=(
     --unshare-user-try
     --uid "$(id -u)"
     --gid "$(id -g)"
     --die-with-parent
+    --share-net
 
-    --ro-bind /nix/store /nix/store
+    --bind /nix /nix
     --ro-bind /etc /etc
     --ro-bind /run /run
     --tmpfs "/run/user/$(id -u)"
-    --ro-bind "/run/user/$(id -u)/bus" "/run/user/$(id -u)/bus"
     --proc /proc
     --dev-bind /dev /dev
 
-    # FHS compatibility shims for shebangs and system() calls
-    # Uses devenv profile paths (stable across rebuilds) rather than nix store hashes
     --ro-bind "$DEVENV_ROOT/.devenv/profile/bin/env" /usr/bin/env
     --ro-bind "$DEVENV_ROOT/.devenv/profile/bin/bash" /bin/sh
 
+    --bind "$APPARATUS_DIR" "$APPARATUS_DIR"
     --bind "$BUBBLE_STATE" "$BUBBLE_STATE"
     --bind "$SESSION_TMP" "$SESSION_TMP"
-    --bind "$BUBBLE_SRC" "$WORKSPACE"
 
-    --chdir "$BUBBLE_CWD"
+    --chdir "$APPARATUS_DIR"
     --setenv HOME "$BUBBLE_HOME"
-    --setenv TMPDIR "$BUBBLE_TMP"
-    --setenv PATH "$BUBBLE_HOME/.local/bin:$PATH"
-    --setenv DEVENV_ROOT "$WORKSPACE"
-
-    # D-Bus access for xdg-desktop-portal (allows sandboxed apps to open URLs in host browser)
-    --setenv XDG_RUNTIME_DIR "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-    --setenv DBUS_SESSION_BUS_ADDRESS "${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u)/bus}"
+    --setenv TMPDIR "$SESSION_TMP"
+    --setenv PATH "$BUBBLE_PATH"
+    "${DEVENV_UNSETS[@]}"
+    --setenv BUBBLE_INDICATOR "🫧"
 )
 
-# Network isolation
-if [[ "$NETWORK_MODE" == "allow" ]]; then
-    BWRAP_ARGS+=(--share-net)
-else
-    BWRAP_ARGS+=(
-        --unshare-net
-        --unsetenv http_proxy --unsetenv HTTP_PROXY
-        --unsetenv https_proxy --unsetenv HTTPS_PROXY
-        --unsetenv ftp_proxy --unsetenv FTP_PROXY
-        --unsetenv all_proxy --unsetenv ALL_PROXY
-        --unsetenv no_proxy --unsetenv NO_PROXY
-    )
-fi
-
-# Clean bubble config from inner environment, export BUBBLE_INDICATOR for shell PS1
-BWRAP_ARGS+=(
-    --unsetenv BUBBLE_NETWORK
-    --unsetenv BUBBLE_SRC
-    --unsetenv BUBBLE_EXTRA_ARGS
-    --setenv BUBBLE_INDICATOR "$BUBBLE_INDICATOR"
-)
-
-# Extra bwrap arguments
-if [[ -n "${BUBBLE_EXTRA_ARGS:-}" ]]; then
-    read -ra extra_args <<< "$BUBBLE_EXTRA_ARGS"
-    BWRAP_ARGS+=("${extra_args[@]}")
-fi
-
-# Execute command (default: interactive shell using $SHELL for readline support)
 if [[ $# -eq 0 ]]; then
     exec bwrap "${BWRAP_ARGS[@]}" -- "${SHELL:-/bin/bash}" -l
 else

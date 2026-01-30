@@ -21,7 +21,6 @@ in
     ]
     ++ lib.optionals isLinux [
       bubblewrap
-      glib # gdbus for xdg-desktop-portal (URL opening from bubble)
     ];
 
   # Researcher Claude runs directly -- no bubble needed for research work
@@ -32,13 +31,9 @@ in
   };
 
   # Launch a practitioner agent inside an isolated bubble
-  # Usage: practitioner claude -p "Read /apparatus/apparatus.md. ..."
   scripts.practitioner = lib.mkIf isLinux {
     exec = ''
-      export BUBBLE_NETWORK=allow
-      export BUBBLE_SRC="$DEVENV_ROOT/apparatus"
-      cd "$BUBBLE_SRC"
-      exec "$DEVENV_ROOT/tools/practitioner/bubble.sh" devenv shell -c -- "$@"
+      exec "$DEVENV_ROOT/tools/practitioner/bubble.sh" "$@"
     '';
   };
 
