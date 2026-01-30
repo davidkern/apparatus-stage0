@@ -13,5 +13,3 @@ The practitioner never sees this repo -- only the `apparatus/` directory. Our re
 - `research-guide.md` -- methodology, exit criteria, findings log, bootstrap assumptions
 - `experiments/NNN-name/` -- per-experiment `log.md` (raw data) and `evaluation.md` (analysis)
 - `apparatus/` -- separate repo; `main` has current best `apparatus.md`, experiment branches preserve conditions/results
-
-Read `research-guide.md` next to understand up-to-date procedures.

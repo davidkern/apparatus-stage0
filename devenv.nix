@@ -18,6 +18,7 @@ in
       bash
       git
       gh
+      jq
     ]
     ++ lib.optionals isLinux [
       bubblewrap
@@ -40,16 +41,13 @@ in
   claude.code = {
     enable = true;
 
-    mcpServers = {
-      devenv = {
-        type = "stdio";
-        command = "devenv";
-        args = [ "mcp" ];
-        env = {
-          DEVENV_ROOT = config.devenv.root;
-        };
-      };
-    };
+    # hooks = {
+    #   SessionStart = [
+    #     {
+    #       command = "cat research-guide.md";
+    #     }
+    #   ];
+    # };
   };
 
   git-hooks.hooks = {
