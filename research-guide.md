@@ -28,7 +28,7 @@ Each experiment follows this procedure. The `/apparatus` repo's `main` branch ho
 
 **1. Plan the experiment**
 
-Decide what changed since the last attempt and what we expect to learn. Record the experiment name (used as both the branch name in `/apparatus` and the directory name in `/apparatus-notes/experiments/`).
+Decide what changed since the last attempt and what we expect to learn. Record the experiment name (used as both the branch name in `/apparatus` and the directory name in `/experiments/`).
 
 **2. Set up experiment conditions** (in `/apparatus`)
 
@@ -73,9 +73,9 @@ git commit -m "experimental results"
 
 The branch now has two commits: conditions and results. These can be inspected later via `git diff main..<experiment-name>` (conditions) and `git diff <conditions-sha>..<results-sha>` (what the agent produced).
 
-**5. Record in research notes** (in `/apparatus-notes`)
+**5. Record in research notes**
 
-Create `/apparatus-notes/experiments/<experiment-name>/` with two files:
+Create `/experiments/<experiment-name>/` with two files:
 
 - **`log.md`** -- The conversation: prompt given to the agent, and the agent's full response (including friction points and summary). This is the raw data.
 - **`evaluation.md`** -- Our analysis: what worked, what didn't, what it means, what to change next. This is where researcher judgment lives.
@@ -83,7 +83,6 @@ Create `/apparatus-notes/experiments/<experiment-name>/` with two files:
 Commit:
 
 ```bash
-cd /apparatus-notes
 git add experiments/<experiment-name>/
 git commit -m "experiment: <experiment-name>"
 ```
