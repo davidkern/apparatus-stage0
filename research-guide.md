@@ -24,7 +24,7 @@ The Apparatus is a system for making design decisions with structured evidence. 
 
 ### Running an experiment
 
-Each experiment follows this procedure. The `/apparatus` repo's `main` branch contains only tooling (devenv, claude config). Experiment conditions and results live on named branches.
+Each experiment follows this procedure. The `/apparatus` repo's `main` branch holds the current best `apparatus.md` plus tooling (devenv, claude config). `main` evolves as we incorporate findings. Experiment conditions and results live on named branches, preserving the exact state the agent saw.
 
 **1. Plan the experiment**
 
@@ -178,90 +178,42 @@ Full evaluation of these frameworks is documented in the gregarious project's de
 
 ## Findings Log
 
-*Rounds 0-3 predate the formalized experiment process above. Starting from round 4, experiments follow the branching and recording procedure.*
+*Rounds 0-2 predate the formalized experiment process. Starting from the next experiment, we follow the branching and recording procedure.*
 
-### Round 0: Initial extraction from gregarious
+### Experiment 001: check-initial-state
 
-Three documents (spec.md, infrastructure.md, bootstrap.md) extracted from gregarious project with project-specific references removed. Agent created them with full gregarious context.
+Agent evaluated three-file apparatus (spec.md, infrastructure.md, bootstrap.md) for executability. Found four procedure/schema gaps (underspecified fields, missing transition, orphaned `running` status, unmapped maturity axis). Researcher reflection identified over-engineering risk and observational method flaw (giving practitioner the study design). Led to merging into single apparatus.md and separating researcher content.
 
-### Round 1: First practitioner check (conversation 001)
+Details: [experiments/001-check-initial-state/](experiments/001-check-initial-state/)
 
-Practitioner prompt: stage0-check.md (evaluate whether you could execute a design task).
+### Experiment 002: first-stage0-attempt
 
-Findings:
-- F1: Procedures don't enumerate all required frontmatter fields for Research, Experiment, Decision creation. Practitioner must cross-reference schema sections.
-- F2: No procedure for Design waiting → open transition when Investigation completes.
-- F3: Experiment `running` status in schema but no procedure sets it and spec doesn't define it.
-- F4: Document maturity defined in spec but no frontmatter field or procedure maps it. Existing documents use `status: specified` which is a maturity value, contradicting the lifecycle status schemas.
+First real design task using merged apparatus.md. Agent produced 21 files following full forward flow. **Structural mechanics work.** Critical failure: all "experiments" were fabricated research (agent never executed code). Over-scoping: designed manifest files, JSON Schema, semver -- far beyond bootstrap needs. Five legitimate friction points reported. Invalidated assumption that quality hypotheses can be deferred from stage 0.
 
-Researcher assessment: All four are legitimate infrastructure gaps. F4 also revealed a conceptual confusion (maturity vs status conflated in the existing documents' frontmatter).
+Details: [experiments/002-first-stage0-attempt/](experiments/002-first-stage0-attempt/)
 
-### Round 2: Researcher reflection
-
-After reviewing the practitioner's findings and the documents ourselves, two meta-observations:
-
-1. **Over-engineering risk.** We are frontloading details into the bootstrap that aren't needed to get through stage 1. Experiments, trace links, evidence thresholds, maturity axis -- these are features of the system we want *eventually*, not things needed to get through the door.
-
-2. **Observational method flaw.** We were giving the practitioner the study design (bootstrap.md with exit criteria and findings) alongside the process documents. This primes the practitioner's evaluation with our expectations.
-
-Actions taken:
-- Separated researcher content (this guide) from practitioner content (apparatus.md)
-- Merged spec.md and infrastructure.md into single apparatus.md (no abstract/concrete split needed when implementation is "markdown files")
-- Moved bootstrap.md content into this research guide
-- Removed from apparatus.md: document maturity axis, evidence rule thresholds, trace links, provenance, gap analysis, proportionality discussion
-- Kept in apparatus.md: knowledge kinds, lifecycles, frontmatter schemas, procedures, assumption tracking, brief invalidation description
-- Fixed F1 (procedures now enumerate all frontmatter fields), F2 (complete/abandon Investigation procedures now update parent Design), F3 (removed `running` from experiment status)
-- F4 resolved by removing maturity axis from practitioner document entirely
-
-### Round 3: First stage 0 attempt (experiment 002)
-
-Practitioner prompt: stage0-attempt.md (execute a real design task using apparatus.md only). Agent scoped to `/apparatus/` via explicit paths in Task tool prompt.
-
-**What was produced**: 21 files. 1 design (project conventions), 5 decisions, 4 investigations (file-format, schema-formalization, adoption-mechanism, directory-naming), 8 research documents, 3 experiments, 1 JSON Schema artifact. Full forward flow executed: design → open questions → investigations → research/experiments → recommendations → decisions → complete.
-
-**Structural success**: The agent followed procedures and file structure correctly. Artifacts in the right places with correct frontmatter. All status transitions valid. The structural mechanics of apparatus.md work.
-
-**Critical failure -- fabricated experiments**: All three "experiments" are actually research. The Quarto frontmatter experiment claims "Python's frontmatter library successfully parsed a .qmd file" but the agent never ran Python. The JSON Schema experiment produced a schema but never validated anything against it. The manifest experiment designed a YAML file but never tested it. Without the evidence rule "An Experiment must be executed, not merely analyzed," the agent couldn't distinguish experiments from research.
-
-This directly invalidates our assumption "Quality hypotheses can be deferred from stage 0." At minimum, the experiment validity rule must be in the practitioner document. Without it, the experiment/research distinction collapses and the confidence scale becomes meaningless.
-
-**Over-scoping**: The agent designed manifest files, JSON Schema with semantic versioning, and adoption mechanisms -- far beyond what the bootstrap needs. We removed proportionality guidance ("depth of investigation should match importance of decision"). Without it, the agent treated all questions as equally worthy of full investigation.
-
-**Practitioner-reported friction** (5 points, all legitimate):
-
-1. Confidence scale assumes code execution. Convention questions (naming, structure) have no code to run, so they get "low confidence" despite thorough analysis. The HDD-derived scale doesn't fit all question types.
-2. No procedure for tracking which of multiple simultaneously-spawned investigations are active.
-3. No procedure for propagating investigation open questions back to the parent design.
-4. No procedure for the experimenting → researching reverse transition (state diagram shows it; procedure doesn't cover it).
-5. No structural mechanism for cross-investigation coordination when investigations discover overlapping territory.
-
-**Researcher observations not reported by practitioner**:
-
-- The agent completed all 4 investigations and all 5 decisions in a single pass, which is artificial. Real work involves back-and-forth. The procedures don't prevent this but also don't guide iterative work.
-- The agent created `research/` and `experiments/` subdirectories at investigation creation time, even for investigations that never got experiments (directory-naming). The procedure says to create both subdirectories upfront, which creates empty structure.
-
-### Assessment: what to change for next attempt
+### Next experiment: planned changes
 
 **Must fix in apparatus.md**:
-- Add experiment validity rule: "An Experiment must be executed, not merely analyzed. Writing code and reasoning about it without running it is Research, not an Experiment."
+- Add experiment validity rule: "An Experiment must be executed, not merely analyzed."
 - Add reverse transition procedure for experimenting → researching.
-- Add procedure for propagating investigation open questions to parent design when completing a design.
+- Add procedure for propagating investigation open questions to parent design.
 
 **Should consider**:
-- Rethink confidence scale to not penalize non-experimental investigations. Maybe: high (validated by evidence -- experiment or authoritative source), medium (supported by analysis), low (conjecture or single source).
-- Add brief proportionality note: not all questions warrant full investigation.
-- Remove upfront creation of `experiments/` subdirectory -- create when needed.
+- Rethink confidence scale for non-experimental investigations.
+- Add brief proportionality note.
+- Create `experiments/` subdirectory only when needed.
 
-**Don't fix yet** (need more data):
-- Cross-investigation coordination (#5). May be inherent to the model. One more attempt to see if it recurs.
-- Multi-investigation tracking (#2). The current procedure is technically correct; may just need a clarifying sentence.
+**Need more data**:
+- Cross-investigation coordination. May be inherent to the model.
+- Multi-investigation tracking. May just need a clarifying sentence.
 
 ## Bootstrap Assumptions
 
-| Assumption | Invalidated if | Impact |
-|------------|----------------|--------|
-| A single apparatus.md is sufficient for stage 1 | Practitioner can't find information because the document is too long or poorly organized | Consider splitting, but on a different axis than before |
-| Plain Markdown with YAML frontmatter works for Apparatus documents | Format becomes a bottleneck (need computed content, cross-references that break) | Design document format as a stage 1+ task |
-| Manual procedures are detailed enough to follow | Practitioner encounters ambiguity not resolvable from apparatus.md | Revise procedures in apparatus.md |
-| Experiments can be deferred from stage 0 | Stage 1 design task requires experimental validation that the process can't express | Re-add Experiment to apparatus.md |
-| Quality hypotheses can be deferred from stage 0 | Practitioner produces low-quality output because no quality guidance exists | Selectively re-add guidance to apparatus.md |
+| Assumption | Status | Invalidated if | Impact |
+|------------|--------|----------------|--------|
+| A single apparatus.md is sufficient for stage 1 | live | Practitioner can't find information because the document is too long or poorly organized | Consider splitting, but on a different axis than before |
+| Plain Markdown with YAML frontmatter works for Apparatus documents | live | Format becomes a bottleneck (need computed content, cross-references that break) | Design document format as a stage 1+ task |
+| Manual procedures are detailed enough to follow | live | Practitioner encounters ambiguity not resolvable from apparatus.md | Revise procedures in apparatus.md |
+| Experiments can be deferred from stage 0 | live | Stage 1 design task requires experimental validation that the process can't express | Re-add Experiment to apparatus.md |
+| Quality hypotheses can be deferred from stage 0 | invalidated (002) | Practitioner produces low-quality output because no quality guidance exists | Selectively re-add guidance to apparatus.md |
