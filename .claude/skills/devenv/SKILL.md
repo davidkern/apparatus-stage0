@@ -9,7 +9,11 @@ Do not install packages with apt, brew, pip, npm -g, or similar. Everything goes
 
 ## Missing command or package
 
-1. Search for the package: use the `mcp__mcp_devenv_sh__search_packages` tool, or run `devenv search <query>`
+1. Search for the package:
+
+```bash
+bash .claude/skills/devenv/scripts/search-packages.sh "<query>"
+```
 2. Edit `devenv.nix`: add the package name to the `packages` list
 3. Tell the user to re-enter the devenv shell (or `direnv reload`)
 
@@ -34,8 +38,6 @@ services.<name>.enable = true;
 Common: `postgres`, `redis`, `mysql`, `elasticsearch`. Service-specific settings vary — search options to discover them.
 
 ## Search available options
-
-Use the `mcp__mcp_devenv_sh__search_options` tool, or:
 
 ```bash
 bash .claude/skills/devenv/scripts/search-options.sh "<query>"

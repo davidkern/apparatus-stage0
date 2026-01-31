@@ -41,6 +41,9 @@ in
   claude.code = {
     enable = true;
 
+    # No remote MCP server — skill scripts handle search locally
+    mcpServers = { };
+
     # hooks = {
     #   SessionStart = [
     #     {
