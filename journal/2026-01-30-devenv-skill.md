@@ -1,8 +1,38 @@
-# 2026-01-30: Devenv Claude skill
+# 2026-01-30: Architecture and devenv skill
 
-## Context
+## Post-003 architecture discussion
 
-After experiment 003 confirmed that review gates need structural enforcement, we pivoted to building the runner infrastructure. That requires the practitioner to run inside a controlled environment (bubblewrap sandbox + devenv shell). Claude Code needs to work inside that environment without manual setup.
+After three experiments in one evening, we stepped back to synthesize. Experiment 003's review gate failure generalized into a principle: **the agent is a good worker and a bad self-regulator.** Asking it to be both is the source of the collapse. Any behavior we need guaranteed must be structurally enforced, not instructionally requested.
+
+This led to a three-component architecture:
+
+1. **Git as state storage.** Lifecycle state lives in the commit graph. Transitions are commits made by the runner, not the agent. Review gates become: runner commits agent work, pauses; after human approval, runner commits the transition and launches the next phase.
+
+2. **Claude skills as the practitioner API.** Activity-oriented interface — the agent calls actions like "open-question" or "spawn-investigation" rather than writing state or structural files directly. Skills structurally bound what the agent can do. It can't invent activity types if no skill exists. This also addresses the fabricated experiments problem: available experiment types = available skills.
+
+3. **Runner/orchestrator.** Manages phases, launches practitioners with phase-scoped prompts, inspects results, validates, commits, transitions. Batch model: agent works a phase to completion, runner processes between phases. Simpler than mid-session interception and is exactly the behavior we want.
+
+Design principles established:
+- **Runner is sole writer of state.** Agent produces content; runner manages transitions.
+- **Git is a database, not an API.** Don't use git as a communication channel. Skills provide the real-time API.
+- **Control plane grows based on evidence.** A behavior moves from agent-managed to runner-managed when experiments show the agent can't self-regulate it.
+- **Prevention over detection.** Runs are expensive. Don't let the agent do something wrong and catch it after.
+
+### Open tensions from this discussion
+
+- **Synthesis across phases.** If the runner clears agent context between phases, we lose cross-cutting synthesis. Options: don't clear context (conflicts with unit-testing), summary artifact at boundaries (testable, explicit), or dedicated synthesis phase. Not urgent until runner exists.
+- **Project integration.** The practitioner keeps exploring how apparatus fits into a project repo. Need enough structure to prevent this distraction without over-committing. Bootstrapping fiat decision — revisit with the actual process later.
+- **Experiment definition is slippery.** Fabricated experiments confirmed across 002 and 003. Skill-based architecture may address this but needs validation.
+- **Iteration speed.** Experiments cost ~10 min and significant tokens. Phased runner + batch model should support "unit testing" — set up mid-flight git state, run one phase, observe.
+
+### Next steps as of this discussion
+
+1. Link gregarious repo into workspace for reference on the skill-based API pattern.
+2. Experiment with and validate the three-component architecture against the gate enforcement problem from 003. Start with the smallest slice that proves the model.
+
+## Devenv skill
+
+After the architecture discussion, we pivoted to building the first concrete piece: the practitioner's development environment. The runner infrastructure requires the practitioner to run inside a controlled environment (bubblewrap sandbox + devenv shell). Claude Code needs to work inside that environment without manual setup.
 
 ## What happened
 
