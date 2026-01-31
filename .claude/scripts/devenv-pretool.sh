@@ -12,12 +12,10 @@ if [ -z "$COMMAND" ]; then
   exit 0
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 # Write command to temp file (avoids all quoting issues)
 CMDFILE=$(mktemp /tmp/devenv-cmd-XXXXXXXX.sh)
 printf '%s' "$COMMAND" > "$CMDFILE"
 
 # Return updatedInput with executor wrapping
-jq -n --arg cmd "$SCRIPT_DIR/devenv-exec.sh $CMDFILE" \
+jq -n --arg cmd "$DEVENV_ROOT/.claude/scripts/devenv-exec.sh $CMDFILE" \
   '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "allow", updatedInput: {command: $cmd}}}'
