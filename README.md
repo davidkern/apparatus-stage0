@@ -1,12 +1,12 @@
-# Apparatus Research Notes
+# Apparatus Bootstrap
 
-Research notes for bootstrapping The Apparatus -- a knowledge management process for projects that make technical decisions under uncertainty.
+Bootstrapping the Apparatus — a compounding mechanism for making design decisions with structured evidence.
 
-See [research-guide.md](research-guide.md) for methodology, findings, and experiment procedure.
+## Orientation
 
-## Experiments
+- **[research-guide.md](research-guide.md)** — How we work: methodology, procedures, evaluation criteria
+- **[status.md](status.md)** — Where we are: work queue and current landscape
+- **[journal/](journal/)** — What we've done: append-only researcher narrative
+- **[experiments/](experiments/)** — Practitioner test records with plans, logs, and evaluations
 
-| # | Name | Summary |
-|---|------|---------|
-| 001 | [check-initial-state](experiments/001-check-initial-state/) | Evaluated three-file apparatus for executability. Found procedure/schema gaps. |
-| 002 | [first-stage0-attempt](experiments/002-first-stage0-attempt/) | First real design task. Structural success, fabricated experiments. |
+The artifact under development lives in **[apparatus/](apparatus/)**, a nested git repository with its own branch-per-experiment history.

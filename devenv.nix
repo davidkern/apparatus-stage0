@@ -18,12 +18,26 @@ in
       bash
       git
       gh
+      jq
+      python3
+      yq-go
+      curl
+      tree
+      file
+      gnused
+      gnugrep
+      diffutils
+      xxd
     ]
     ++ lib.optionals isLinux [
       bubblewrap
     ];
 
-  # Researcher Claude runs directly -- no bubble needed for research work
+  enterShell = ''
+    export DEVENV_BIN="$(command -v devenv)"
+  '';
+
+  # Researcher Claude
   scripts.claude = {
     exec = ''
       exec "${claude-code-native}/bin/claude" "$@"
@@ -40,14 +54,13 @@ in
   claude.code = {
     enable = true;
 
-    mcpServers = {
-      devenv = {
-        type = "stdio";
-        command = "devenv";
-        args = [ "mcp" ];
-        env = {
-          DEVENV_ROOT = config.devenv.root;
-        };
+    # No remote MCP server — skill scripts handle search locally
+    mcpServers = { };
+
+    hooks = {
+      load-research-guide = {
+        hookType = "SessionStart";
+        command = "cat research-guide.md";
       };
     };
   };
