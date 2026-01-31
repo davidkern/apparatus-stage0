@@ -41,3 +41,21 @@ With the journal structure in place, we did an archaeological pass to extract al
 ### Incidental finding: devenv's built-in Claude support
 
 While removing stale hooks from the research repo's `devenv.nix`, discovered that devenv's `claude.code` module generates a PostToolUse hook (pre-commit on Edit/Write) that we didn't configure. This is built-in behavior from the devenv claude module. Our apparatus devenv module doesn't include this — we should add it. Not addressed now to stay focused on the reorg.
+
+## What the Apparatus is
+
+While organizing the research environment into past/present/future structures, a deeper realization emerged from examining the recursive nature of the project.
+
+The research environment's structures (journal, status, experiments) are proto-apparatus. The apparatus formalizes patterns discovered while building the research environment. The formalized apparatus gets adopted back into the research environment. Each layer is both the subject and the instrument. "Turtles all the way down" — not as a problem to solve but as a fundamental property.
+
+The key insight, sharpened through discussion:
+
+**The Researcher's act of building the System generates the knowledge that the System is designed to capture. The System's act on that knowledge generates not the Researcher, but the research *capability* — it raises the floor the Researcher stands on.**
+
+This resolves the question of what the Apparatus actually is. It is not a research support system (passive infrastructure that keeps track of work). It is not a sentient research agent (an autonomous loop with open-ended goals). It is somewhere between, and each iteration pushes further from the former toward the latter.
+
+More precisely: we follow informal methods that elicit formal knowledge. That formal knowledge becomes input to prototypical machinery that accepts formal knowledge and produces more capable machinery as output. The system does not supplant the Researcher. It becomes the next turtle — freeing the Researcher to think in terms of larger abstractions.
+
+This reframes the bootstrap. The system isn't converging toward a fixed point (like a compiler that compiles itself identically). It's converging toward raising the floor. Each iteration doesn't close the loop; it lifts it. Stage 0 ends not when the apparatus is "correct," but when the Researcher can operate *through* the system rather than *around* it — when the informal methods we're using now (journal, ad-hoc decisions, manual reorganization) can happen inside the apparatus, not because it does them for us, but because it provides the structure to do them systematically.
+
+This understanding should inform the apparatus's own documentation of its purpose and the bootstrap's exit criteria. It is not just a design-decision tracker; it is a compounding mechanism for research capability.
