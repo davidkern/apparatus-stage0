@@ -1,7 +1,7 @@
 # Skill trigger test cases
 # Format: expected(yes|no):prompt
 #
-# Positive: should trigger the devenv skill
+# Positive: should trigger the devenv skill (Skill tool called with "devenv")
 # Negative: should NOT trigger
 
 # --- Installing/searching packages ---
@@ -23,7 +23,7 @@ yes:How do I start Postgres in this environment?
 # --- Editing devenv.nix ---
 yes:Add a custom script to devenv.nix
 
-# --- Nix expressions ---
+# --- Nix expressions in devenv context ---
 yes:What does lib.mkIf do in a devenv config?
 
 # --- Negative controls ---
@@ -31,5 +31,5 @@ no:Fix the typo on line 3 of README.md
 no:What git branch am I on?
 no:Explain what the main function in app.py does
 no:Write a unit test for the parse function
-no:Explain Nix let bindings and with expressions
 no:How do I create a PR for this branch?
+no:Summarize the contents of research-guide.md

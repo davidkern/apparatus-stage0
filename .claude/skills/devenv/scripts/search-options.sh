@@ -2,8 +2,8 @@
 # Search devenv options by keyword.
 # Usage: search-options.sh <query>
 #
-# Builds optionsJSON (cached), then filters with jq.
-# Requires: jq, nix
+# Builds optionsJSON via devenv repl (cached), then filters with jq.
+# Requires: jq, devenv
 
 set -euo pipefail
 
@@ -19,7 +19,7 @@ mkdir -p "$state_dir"
 rebuild=false
 if [[ -f "$cache_file" ]]; then
   cached_path="$(cat "$cache_file")"
-  if [[ ! -d "$cached_path" ]]; then
+  if [[ ! -f "${cached_path}/share/doc/nixos/options.json" ]]; then
     rebuild=true
   elif [[ "$devenv_nix" -nt "$cache_file" ]]; then
     rebuild=true
@@ -30,7 +30,14 @@ fi
 
 if $rebuild; then
   echo "Building options JSON (first run or devenv.nix changed)..." >&2
-  options_path="$(nix build --no-link --print-out-paths "${devenv_root}#optionsJSON" 2>/dev/null)"
+  # devenv repl loads the project flake; :b builds a derivation and prints the output path
+  repl_output="$(printf ':b packages.%s.optionsJSON\n' "$(uname -m)-linux" | devenv repl 2>&1)"
+  options_path="$(echo "$repl_output" | grep -oP '(?<=out -> )\S+')"
+  if [[ -z "$options_path" ]]; then
+    echo "Error: failed to build optionsJSON. Repl output:" >&2
+    echo "$repl_output" >&2
+    exit 1
+  fi
   echo "$options_path" > "$cache_file"
 else
   options_path="$(cat "$cache_file")"
