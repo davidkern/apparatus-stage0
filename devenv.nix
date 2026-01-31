@@ -62,11 +62,6 @@ in
         hookType = "SessionStart";
         command = "cat research-guide.md";
       };
-      devenv-wrap-bash = {
-        hookType = "PreToolUse";
-        matcher = "Bash";
-        command = "${config.devenv.root}/.claude/scripts/devenv-pretool.sh";
-      };
     };
   };
 
