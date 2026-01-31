@@ -70,3 +70,9 @@ Practitioner inferred "apparatus-stage0" project structure from its visible path
 - Add reverse transition procedure (experimenting -> researching).
 - Add procedure for propagating investigation open questions to parent design.
 - Fix ID assignment: max existing ID + 1 instead of count.
+
+## Future work: devenv skill triggering for ephemeral package use
+
+The devenv module's `nix-shell -p` hint is currently delivered via a SessionStart hook — always-visible context regardless of task relevance. Hypothesis: Claude has a strong negative bias toward loading tools, preferring to change strategy rather than use a skill to resolve a missing command. The SessionStart hook is a workaround; the hint taxes every session.
+
+Better approach to test: a PreToolUse or PostToolUse hook that detects command-not-found exits and injects targeted guidance at the decision point. This would surface the hint only when relevant, without the per-session context cost. Good candidate for experimentation once the runner and experimentation system are operational.
