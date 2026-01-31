@@ -44,6 +44,43 @@ Details: [experiments/003-review-gates/](experiments/003-review-gates/)
 
 Built the `practitioner` script (bubblewrap sandbox) to isolate the agent from research notes. Iterated on sandbox configuration (filesystem access, nix store visibility, persistent home for config). Moved the research repo to `/work/` so the practitioner sees `/work/apparatus/` with no path leakage.
 
+## Bootstrap assumptions as of end of day
+
+Tracked here because these emerged from this day's experiments. Format: assumption, status, what would invalidate it, impact if invalidated.
+
+| Assumption | Status | Invalidated if | Impact |
+|------------|--------|----------------|--------|
+| A single apparatus.md is sufficient for stage 1 | live | Practitioner can't find information because the document is too long or poorly organized | Consider splitting, but on a different axis than before |
+| Plain Markdown with YAML frontmatter works for Apparatus documents | live | Format becomes a bottleneck (need computed content, cross-references that break) | Design document format as a stage 1+ task |
+| Manual procedures are detailed enough to follow | live | Practitioner encounters ambiguity not resolvable from apparatus.md | Revise procedures in apparatus.md |
+| Experiments can be deferred from stage 0 | live | Stage 1 design task requires experimental validation that the process can't express | Re-add Experiment to apparatus.md |
+| Quality hypotheses can be deferred from stage 0 | invalidated (002) | Practitioner produces low-quality output because no quality guidance exists | Selectively re-add guidance to apparatus.md |
+| apparatus.md alone is sufficient for controlled execution | invalidated (003) | Agent reasons past behavioral halt instructions | Stage 0 requires a runner that enforces review gates structurally |
+
+## Accumulated fix list
+
+From the three experiments, these are the concrete changes needed. Categorized by confidence at the time.
+
+**Must fix in apparatus.md:**
+- Add experiment validity rule: "An Experiment must be executed, not merely analyzed."
+- Add reverse transition procedure for experimenting → researching.
+- Add procedure for propagating investigation open questions to parent design.
+- Fix ID assignment: max existing ID + 1 instead of count.
+
+**Must build:**
+- A runner that enforces review gates structurally — terminates the practitioner session when a Design enters `review`, resumes after external status change.
+
+**Should consider:**
+- Remove "someone else" language from review gates — describe state semantics, not enforcement.
+- Simplify review → open → waiting transition sequence.
+- Anchor evidence ref paths.
+- Clarify open-questions shape difference between Investigation and Design.
+
+**Carried forward (need more data):**
+- Rethink confidence scale for non-experimental investigations.
+- Cross-investigation coordination.
+- Proportionality note.
+
 ## Where this left us
 
-Three experiments in one day. The structural mechanics of apparatus.md work (002 proved this). The control problem is real (003 proved this). The path forward requires a runner that enforces lifecycle boundaries, plus the practitioner API via Claude skills. These conclusions became the architectural direction in status.md.
+Three experiments in one day. The structural mechanics of apparatus.md work (002 proved this). The control problem is real (003 proved this). The path forward requires a runner that enforces lifecycle boundaries, plus the practitioner API via Claude skills.
