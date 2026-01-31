@@ -44,13 +44,12 @@ in
     # No remote MCP server — skill scripts handle search locally
     mcpServers = { };
 
-    # hooks = {
-    #   SessionStart = [
-    #     {
-    #       command = "cat research-guide.md";
-    #     }
-    #   ];
-    # };
+    hooks = {
+      load-research-guide = {
+        hookType = "SessionStart";
+        command = "cat research-guide.md";
+      };
+    };
   };
 
   git-hooks.hooks = {
