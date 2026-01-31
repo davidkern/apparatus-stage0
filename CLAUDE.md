@@ -2,4 +2,4 @@
 
 ## Tool availability
 
-If a command or tool is missing, use `nix-shell -p <package> --run "..."` for one-off use. If a tool comes up repeatedly, add it to `devenv.nix` via the devenv skill instead.
+All Bash tool calls run inside `devenv shell` automatically. If a command is missing, add it to `devenv.nix` via the devenv skill. For one-off use of a package not yet in devenv, use `nix-shell -p <package> --run "..."`.

@@ -15,7 +15,6 @@ Do not install packages with apt, brew, pip, npm -g, or similar. Everything goes
 bash .claude/skills/devenv/scripts/search-packages.sh "<query>"
 ```
 2. Edit `devenv.nix`: add the package name to the `packages` list
-3. Tell the user to re-enter the devenv shell (or `direnv reload`)
 
 ## Enable a language toolchain
 
@@ -61,7 +60,7 @@ scripts.<name>.exec = ''
 
 ## After any change to devenv.nix
 
-Always tell the user they must re-enter the devenv shell or run `direnv reload` to pick up changes.
+All Bash tool calls run through `devenv shell` automatically, so changes to `devenv.nix` are picked up on the next command. The user's shell picks up changes via direnv.
 
 ## Files you must not edit
 

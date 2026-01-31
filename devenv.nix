@@ -19,12 +19,25 @@ in
       git
       gh
       jq
+      python3
+      yq-go
+      curl
+      tree
+      file
+      gnused
+      gnugrep
+      diffutils
+      xxd
     ]
     ++ lib.optionals isLinux [
       bubblewrap
     ];
 
-  # Researcher Claude runs directly -- no bubble needed for research work
+  enterShell = ''
+    export DEVENV_BIN="$(command -v devenv)"
+  '';
+
+  # Researcher Claude
   scripts.claude = {
     exec = ''
       exec "${claude-code-native}/bin/claude" "$@"
@@ -48,6 +61,11 @@ in
       load-research-guide = {
         hookType = "SessionStart";
         command = "cat research-guide.md";
+      };
+      devenv-wrap-bash = {
+        hookType = "PreToolUse";
+        matcher = "Bash";
+        command = "${config.devenv.root}/.claude/scripts/devenv-pretool.sh";
       };
     };
   };
