@@ -1,6 +1,6 @@
 ---
 user-invocable: false
-description: "This project uses devenv (Nix) to manage all dependencies, packages, services, and toolchains. Load this skill when: installing or searching for packages, resolving missing commands or 'command not found' errors, configuring language toolchains or services, editing devenv.nix, or working with Nix expressions."
+description: "All dependencies, packages, services, and toolchains are managed via devenv (Nix). Load when: installing or finding packages, resolving 'command not found' errors, configuring languages or services, or editing devenv.nix."
 ---
 
 # Skill trigger test
