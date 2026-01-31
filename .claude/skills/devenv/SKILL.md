@@ -1,6 +1,6 @@
 ---
 user-invocable: false
-description: "All dependencies, packages, services, and toolchains are managed via devenv (Nix). Load when: installing or finding packages, resolving 'command not found' errors, configuring languages or services, or editing devenv.nix."
+description: "devenv (Nix) manages all packages, services, and toolchains. Load for: missing commands, package install/search, language/service config, editing devenv.nix."
 ---
 
 # Skill trigger test
