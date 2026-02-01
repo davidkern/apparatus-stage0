@@ -12,6 +12,9 @@ devenv.local.yaml
 # the experiment
 apparatus
 
+# the external validation
+gregarious
+
 # reference material manually added as needed
 reference
 

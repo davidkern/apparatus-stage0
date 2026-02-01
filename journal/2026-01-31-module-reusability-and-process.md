@@ -131,3 +131,15 @@ A fresh agent read all of the day's artifacts — journal, five interview transc
 The overall finding: the most generative insights live in ephemeral conversation records and have not propagated to controlling documents. The interview protocol successfully sampled latent understanding, but that understanding hasn't been integrated. What to do with all of this is an open question.
 
 Artifacts: `journal/2026-01-31-module-reusability-and-process/cross-perspective-synthesis.md`
+
+## Project triad design
+
+Discussion of the synthesis led to a significant reframing. The apparatus.md formalizes the decision-tracking loop (the inner loop) rather than the research/investigation loop that actually generates value. The investigation skill from gregarious — which independently completed a complex research task involving web research, code analysis, building five renderers, and making an evidence-based recommendation — is closer to the productive loop than anything in apparatus.md. The current apparatus.md can't evolve into what's needed; it formalizes artifacts (nouns) rather than activity (verbs).
+
+Additionally, the three projects (apparatus, this research space, gregarious) are entirely isolated from each other. This isolation compounds the circular evaluation problem: without gregarious as an external signal source, we can only test whether the apparatus is internally consistent, not whether it's useful.
+
+Hypothesis: defining the relationships between the three projects — what flows in which direction, what the minimal implementation looks like — resolves several tensions simultaneously (circular evaluation, wrong loop, lack of permeability, exit velocity).
+
+Working this out informally in a design directory rather than through the formal experiment process, since the experiment process tests apparatus.md with sandboxed practitioners and that's not what this is. This is researcher design work. The fact that we don't have a formal process for this is itself a data point about what the apparatus eventually needs to support.
+
+Artifacts: `journal/2026-01-31-module-reusability-and-process/triad-design/`
