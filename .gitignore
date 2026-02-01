@@ -21,3 +21,6 @@ reference
 external
 .mcp.json
 
+# experiment sandbox (contains nested git repos)
+sandbox
+
