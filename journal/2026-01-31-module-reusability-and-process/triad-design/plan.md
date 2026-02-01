@@ -2,80 +2,232 @@
 
 ## Task list
 
-- [x] Determine how gregarious references the apparatus module → `git+file:` for local dev; `github:owner/apparatus` for production. `path:` doesn't work (not copied to store). Relative `../` doesn't work (can't import outside git repo).
-- [x] Add composable settings support to apparatus module (extraHooks, allowedTools, deniedTools, extraSettings)
+### Done (this session)
+
+- [x] Determine how gregarious references the apparatus module → `git+file:`
+      for local dev; `github:owner/apparatus` for production
+- [x] Add composable settings support to apparatus module (extraHooks,
+      allowedTools, deniedTools, extraSettings)
 - [x] Integrate apparatus module into gregarious devenv.nix
-- [x] Verify: devenv skill, PreToolUse hook, settings merge all work in gregarious
-- [ ] (deferred) Integrate apparatus module into research space
+- [x] Verify: devenv skill, PreToolUse hook, settings merge all work
+- [x] Remove Quarto from gregarious, convert all .qmd to .md (baseline for
+      investigation skill generalization)
 
-## Task 1: Composable settings in apparatus module
+### Next session
 
-### Problem
+- [ ] Create `apparatus.store/journal/` in all three repos
+- [ ] Migrate research space journal into `apparatus.store/journal/`
+- [ ] Migrate research space experiments into `apparatus.store/` (structure TBD
+      based on protocol catalog decisions)
+- [ ] Move investigation skill into apparatus (as `apparatus` uber-skill)
+- [ ] Move Python CLI into apparatus repo
+- [ ] Install apparatus skill in gregarious via module
+- [ ] Install apparatus skill in research space via module
+- [ ] Migrate gregarious `docs/investigation/gpu-structure/` to
+      `apparatus.store/investigation/gpu-structure/` (frontmatter: gregarious → apparatus)
 
-The apparatus module generates a complete `.claude/settings.json` containing
-only its own hooks. Consuming projects need to add their own configuration:
+### Future sessions
 
-- **Gregarious** has permission rules (allowed/denied gh commands, plugins)
-  and will have project-specific hooks
-- The Nix `files` attribute replaces the entire file — no merge
+- [ ] Integrate apparatus devenv module into research space
+- [ ] Test removing `claude-code-overlay` input from gregarious when apparatus
+      switches to `github:` reference
+- [ ] Define feedback signal: what we observe in gregarious, how it flows back
+- [ ] Implement design/ and decision/ structures (big loop)
+- [ ] Revise research-guide.md to reflect big-loop framing
+- [ ] Finalize protocol catalog naming and implement remaining protocol types
 
-### Approach (Option B)
+## Design principles
 
-The module accepts additional configuration as Nix options and merges
-everything into a single generated settings.json. This is standard Nix
-module composition.
+- Apparatus is an opinionated framework — no configuration unless an external
+  factor forces it
+- `apparatus:` frontmatter namespace everywhere; unnamespaced things in the
+  gregarious implementation should be namespaced
+- Where conventions conflict across the triad, decide a shared convention and
+  migrate all three repos
+- The investigation skill from gregarious is the more general system and
+  subsumes the research space's experiment support — take the larger system,
+  conform the research space to it. All nodes use the same machinery.
+- No Taskfile in apparatus — devenv scripts replace everything we need
+- Skill name: `apparatus` — uber-skill exposing all functionality as
+  sub-commands. Eventually an `apparatus` CLI command too.
+- Existing experiment/investigation data in gregarious and research space is
+  not precious — useful for validation only. Will be regenerated when the
+  improved system is in place.
+- Journal is critical infrastructure — implement first.
 
-New options needed:
-```nix
-apparatus.claude.extraHooks       # additional hook entries (SessionStart, PreToolUse, etc.)
-apparatus.claude.permissions      # allowedTools, deniedTools, etc.
-apparatus.claude.extraSettings    # escape hatch for anything else
-```
+## Naming conventions (settled)
 
-The module deep-merges its own hooks with extraHooks, adds permissions,
-and generates the final file.
+| Concept | Name | Location |
+|---------|------|----------|
+| Data root directory | `apparatus.store/` | `<repo-root>/apparatus.store/` in all three repos |
+| Frontmatter namespace | `apparatus:` | All metadata fields |
+| Directory naming | singular | SQL table convention (design/, not designs/) |
+| Architecture work | design | `apparatus.store/design/<name>/` |
+| Tracked choices | decision | `apparatus.store/design/<name>/decision/` |
+| Bounded inquiry | investigation | `apparatus.store/investigation/<topic>/` |
+| Reasoning record | journal | `apparatus.store/journal/` |
+| Skill trigger | `apparatus` | Sub-commands for all functionality |
 
-Skills coexistence: the module generates `.claude/skills/devenv/` via Nix
-files. Gregarious's skills (investigate, developing-bevy, tmux) are regular
-git-tracked files in `.claude/skills/`. These are separate directories so
-they should coexist — but need to verify devenv's `files` attribute doesn't
-claim the parent directory.
+## Naming conventions (open, for next session)
 
-## Task 2: Integrate apparatus module into gregarious
+### Protocol catalog directories
 
-### Prerequisite
+The third level inside an investigation. Each protocol type is a directory
+kind. Naming convention: `<category>-<specifier>` (singular).
 
-Task 1 (composable settings) and the module reference question.
+Known protocol types from existing work:
 
-### What this means concretely
+| Protocol | What it does | Where it exists today |
+|----------|-------------|----------------------|
+| `experiment-code` | Write code, run it, observe results | gregarious experiments, gpu-structure investigation |
+| `experiment-agent` | Give agent a procedure, observe behavior | apparatus experiments 001-003 |
 
-Gregarious's devenv.nix currently:
-- Installs claude-code directly from the overlay
-- Has no devenv management skill
-- Has no PreToolUse hook for automatic devenv shell wrapping
-- Manages all Claude configuration manually
+Known informally (not yet defined):
 
-After integration:
-- Gregarious imports the apparatus devenv module
-- The module provides claude-code, the PreToolUse hook, the devenv skill
-- Gregarious retains full control of everything else (Rust, Python, graphics
-  stack, domain skills, pre-commit hooks, etc.)
-- Gregarious passes its permissions and any extra hooks via the new options
-- The module composes with gregarious's existing configuration rather than
-  replacing it
+| Protocol | What it does | Examples |
+|----------|-------------|----------|
+| `experiment-agent-elicitation` | Structured prompting to extract understanding | interviews, retrospective |
+| `verify-*` / `check-*` | Integration testing, composition verification | triad module integration |
+| `analysis-*` | Directed synthesis of existing evidence | gpu-structure research entries (agent sessions producing structured analysis) |
 
-### Open questions
+### Term status
 
-- Does the apparatus module's claude-code package conflict with gregarious's
-  direct import of the overlay? Probably needs the module to be the sole
-  provider, and gregarious removes its direct reference.
-- Gregarious has three skills (investigate, developing-bevy, tmux) that are
-  NOT managed by the apparatus module. The module's file generation must not
-  clobber them.
+| Term | Status | Meaning |
+|------|--------|---------|
+| "research" | **umbrella activity** | Describes the full class of investigative work; no structural home needed |
+| "experiment" | **survives as protocol category prefix** | `experiment-code`, `experiment-agent`, etc. |
+| "investigation" | **settled** | Bounded inquiry: question → evidence → recommendation |
+| "design" | **settled** | Scoped architecture work with tracked decisions |
+| "decision" | **settled** | A choice with rationale, evidence, and assumptions |
+| "journal" | **settled** | Append-only reasoning record |
 
-### Not in scope
+### Open naming questions
 
-- Moving the investigation skill into apparatus (future task)
-- Integrating apparatus module into the research space (deferred until we
-  validate the gregarious integration)
-- Any changes to the investigation skill itself
+- Exact names for protocol types beyond `experiment-code` and `experiment-agent`
+- Sub-command naming for the `apparatus` skill (e.g., `apparatus investigation init`
+  vs `apparatus investigate` vs something shorter)
+
+## System framing
+
+The apparatus is a **design system**, not a research system. Research is one
+activity within the full cycle:
+
+**Implementation → Design → Investigation → Design → Implementation**
+
+- **Big loop**: the full design-with-traceability cycle. Design spawns
+  questions, investigations answer them, recommendations inform decisions,
+  decisions track assumptions, implementation happens, assumptions get
+  invalidated, new investigations spawn. apparatus.md describes this structure.
+- **Little loop**: a single investigation — question → evidence →
+  recommendation. The gregarious investigation skill implements this.
+  The protocol catalog refines its internals.
+
+The little loop is the right first piece to build. The big loop orchestrates it.
+
+### Protocol catalog
+
+Instead of generic "research" and "experiment" phases (which were too
+open-ended and led to agents conducting "experiments" by imagination), the
+investigation uses a catalog of named protocols. Each protocol defines:
+- What "doing it" means (structural constraint on the agent)
+- What outputs it produces
+- What tool permissions it needs
+
+Apparatus provides core protocols. Projects can add domain-specific protocols
+(e.g., a Bevy-specific code experiment in gregarious). Tool permissions bind
+to protocols, not to the skill or project level.
+
+### Journal
+
+The journal is the first structure to implement because:
+- It's proven its value in the research space (critical for preserving reasoning)
+- It has no dependencies on unresolved naming questions (protocol catalog, etc.)
+- It's the same in all three repos: `apparatus.store/journal/`, date-prefixed
+  markdown files, optional same-named artifact directories
+- It absorbs anything that becomes homeless during migration
+
+**Integrity rules** (enforced by the apparatus skill):
+
+- Journal log files are **append-only** — the skill must not allow mutation of
+  existing content, only appending new entries. This is a structural constraint,
+  not just convention.
+- Log files support **frontmatter** (programmatically manipulated by the skill —
+  e.g., status, tags, or other metadata the apparatus needs to track).
+- Each log file has an optional **same-named asset directory** for artifacts.
+  Asset directories are mutable while the log is the most recent chronological
+  entry. Once a newer log is created, the previous log's asset directory is
+  **closed** — no further mutation allowed.
+- This creates a natural "current working entry" that's open for both appending
+  and artifact creation, with everything older becoming immutable record.
+
+### Future: git plumbing as storage layer
+
+All apparatus consumers are git repos. Git's porcelain presents a
+file-and-directory abstraction, but underneath it's a content-addressable
+store and database (git plumbing). There may be significant utility in
+using git more directly rather than treating `apparatus.store/` as a
+conventional directory tree.
+
+Potential capabilities:
+- **Structural enforcement at the storage layer** — append-only semantics,
+  immutability of closed entries, and mutation rules become properties of
+  how data is committed, not just skill-level rules an agent is told to follow
+- **Worktrees for constrained views** — present exactly the right files and
+  directories for a given activity (e.g., a `/journal` worktree that commits
+  to the right ref and knows what day it is), enforcing structure through
+  what's visible rather than what's permitted
+- **CAS properties** — content-addressable storage gives deduplication,
+  integrity verification, and precise references between artifacts for free
+- **Cross-repo references** — git's native object model may enable cleaner
+  cross-triad references than file paths
+
+This is a research topic for the next session. The directory-based
+`apparatus.store/` plan serves dual purpose: it's the baseline implementation
+we can ship immediately, and it's the requirements specification for what a
+git-native approach would need to replace. Having the structure written down
+in conventional terms guides the investigation of whether git plumbing can
+do it better.
+
+### Meta: research-guide.md framing limitation
+
+`research-guide.md` is scoped to the little loop (investigation/experiment
+cycle) and is injected into every session via system context. This biases
+agents toward little-loop thinking, creating friction when work needs to
+operate at the big-loop level. The guide was correct for stage 0 but the
+project has outgrown its framing. Needs revision — but the revision depends
+on the naming and structural decisions being finalized first.
+
+## Completed work (this session)
+
+### Task 1: Composable settings in apparatus module
+
+The module now accepts consumer configuration via Nix options:
+- `apparatus.claude.extraHooks` — merged with apparatus hooks per event type
+- `apparatus.claude.allowedTools` / `deniedTools` — permissions in settings.json
+- `apparatus.claude.extraSettings` — escape hatch for anything else
+
+Skills coexistence confirmed: Nix-generated `.claude/skills/devenv/` lives
+alongside git-tracked skills without conflict.
+
+### Task 2: Integrate apparatus module into gregarious
+
+- Gregarious imports apparatus via `git+file:///work/apparatus?ref=triad`
+- Module provides claude-code, PreToolUse hook, SessionStart hook, devenv skill
+- Gregarious passes permissions and plugin config via module options
+- `claude-code-overlay` remains in gregarious's inputs (module references it
+  from the importing project's inputs; TODO test removing when using `github:`)
+- `.claude/settings.json` and `.claude/skills/devenv` added to .gitignore
+
+### Task 3: Remove Quarto, convert .qmd to .md
+
+- 44 .qmd files renamed to .md across all of gregarious
+- One Quarto callout replaced with blockquote
+- Quarto config files removed (_quarto.yml)
+- Quarto and chromium removed from devenv.nix
+- Quarto task commands removed from Taskfile.yml
+- Investigation skill updated: CLI, templates, SKILL.md all reference .md
+- Mermaid diagrams preserved as code blocks (rendered by IDE/GitHub natively)
+
+This removes the format coupling that would have blocked investigation skill
+generalization. Remaining coupling points: `gregarious:` frontmatter namespace,
+`docs/investigation/` hardcoded path, project-specific tool permissions.

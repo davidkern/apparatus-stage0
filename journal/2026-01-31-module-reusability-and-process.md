@@ -143,3 +143,15 @@ Hypothesis: defining the relationships between the three projects — what flows
 Working this out informally in a design directory rather than through the formal experiment process, since the experiment process tests apparatus.md with sandboxed practitioners and that's not what this is. This is researcher design work. The fact that we don't have a formal process for this is itself a data point about what the apparatus eventually needs to support.
 
 Artifacts: `journal/2026-01-31-module-reusability-and-process/triad-design/`
+
+## Meta: research-guide framing limitation
+
+While working through the triad design — specifically trying to discuss the big loop (Design → Investigation → Decision → Implementation → trace back) versus the little loop (Investigation → Research → Experiment → Recommendation) — we realized that `research-guide.md` actively creates confusion.
+
+The research-guide was deliberately scoped to the research system: the little loop. It defines the research space's purpose, structures, and methodology all in terms of the investigation/experiment cycle. This made sense when the project was self-contained — the research space studying itself, building apparatus.md.
+
+But now that we're integrating gregarious into the triad, the big loop matters. In gregarious, research is a *phase* within the design process — you investigate a question so you can make a design decision, implement it, and trace implications back through the chain when assumptions change. The apparatus isn't a research system; it's a design system where research is one activity.
+
+The research-guide's framing is injected into every session via CLAUDE.md/system context. This means every fresh agent starts with the little-loop framing baked in, which creates friction when the conversation needs to operate at the big-loop level. The guide's scoping — which was correct for stage 0 — is now a constraint on the work we need to do.
+
+This doesn't mean the research-guide is wrong. It means its scope assumption ("this project is about the research system") no longer matches the project's actual scope ("this project is about the full design-with-traceability system, which includes research"). The guide will need revision, but more importantly, we need to be aware that session context biases agents toward the little loop.

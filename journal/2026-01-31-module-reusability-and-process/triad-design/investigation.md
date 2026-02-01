@@ -147,3 +147,59 @@ Integration successful. Key findings:
   (Nix-generated, conflicts with git-tracked files)
 - Existing `.claude/settings.json` must be removed from disk before devenv can
   generate its replacement (conflict detection)
+
+### Investigation skill format coupling analysis
+
+Deep read of the entire Python module (7 files), 3 Jinja2 templates, SKILL.md,
+and the active gpu-structure investigation.
+
+**The skill is 95% format-agnostic.** The only real Quarto dependency is a single
+callout syntax (`:::{.callout-note}`) in `index_body.qmd.j2`. Everything else
+is standard Markdown with YAML frontmatter.
+
+**What would change to switch from .qmd to .md:**
+
+Code changes (string replacements):
+- `cli.py`: 3 lines — hardcoded `.qmd` extensions for research and experiment files
+- `core.py`: 2 lines — `index.qmd` path references
+- `templates.py`: 3 lines — template filename references
+- `test_core.py`: 2 lines — test file extensions
+
+Template changes:
+- Rename 3 template files: `*.qmd.j2` → `*.md.j2`
+- Replace callout syntax in `index_body` template with blockquote or bold
+- Update `.qmd` in link paths within templates (2 lines)
+
+Documentation:
+- SKILL.md: ~15-20 `.qmd` references to update
+
+Existing investigations:
+- Rename ~5 files in `docs/investigation/gpu-structure/`
+
+**What does NOT change:**
+- YAML frontmatter (format-agnostic)
+- `gregarious:` namespace (custom metadata, not Quarto)
+- All standard Markdown content (tables, headers, lists, code blocks)
+- Python Path logic (works with any extension)
+- Jinja2 rendering (works with any file extension)
+- Frontmatter parsing library (format-agnostic)
+
+**The `gregarious:` frontmatter namespace** is the other coupling point for
+generalization. It's used in every investigation file's frontmatter. To make
+the skill project-agnostic, this would need to become configurable (e.g.,
+`apparatus:` or project-specific).
+
+**`docs/investigation/` path** is hardcoded in `core.py` via
+`get_investigation_path()`. Would need to be configurable for projects that
+want investigations elsewhere.
+
+**Tool permissions** in SKILL.md (cargo, python, task, rustc) are
+gregarious-specific. A generic skill would need project-configurable
+tool permissions.
+
+**Risk assessment: switching gregarious from .qmd to .md**
+- Low technical risk — changes are mechanical string replacements
+- One design decision: how to replace the callout syntax (blockquote is simplest)
+- The active gpu-structure investigation needs its files renamed
+- Gregarious uses Quarto for OTHER docs (design docs, roadmap) — those stay .qmd
+- Only investigation files switch to .md
