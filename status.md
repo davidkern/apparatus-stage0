@@ -28,6 +28,7 @@ Reconciled through: 2026-01-31
 
 - [ ] Link gregarious repo into workspace for reference on skill-based API pattern
 - [ ] Validate three-component architecture (smallest proving slice against gate enforcement problem from 003)
+- [ ] Integrate cross-perspective synthesis into project foundations — see `journal/2026-01-31-module-reusability-and-process/cross-perspective-synthesis.md`. Covers: document revisions (autonomy ceiling, exit criteria, spectrum framing), design constraints (temporal decomposition, permeability, formality gradient), and open problems (circular evaluation, exit velocity, novelty preservation).
 
 ### Needs more data (carried forward from experiments)
 
