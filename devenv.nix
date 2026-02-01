@@ -19,7 +19,7 @@ in
       git
       gh
       jq
-      python3
+      (python3.withPackages (ps: [ ps.pyyaml ]))
       yq-go
       curl
       tree

@@ -88,3 +88,35 @@ journal/2026-02-01-git-as-database/
     ├── position.md                   # Association position statement
     └── rebuttal.md                   # Association rebuttal to composition
 ```
+
+## Git substrate experiments
+
+With the behavioral requirements and debate findings established, we shifted to experimental validation of git as the storage substrate.
+
+### Experiment 001: Can git do this at all?
+
+Tested five capabilities against actual git plumbing: custom ref namespaces, data model construction, hermetic instantiation via bundle, atomic multi-ref transactions, selective instantiation. All passed. Git is viable. One limitation: `git log --all` includes commits from custom refs, and no declarative git config option exists to exclude them from traversal.
+
+### The ergonomic question
+
+The `git log --all` limitation led to a research detour into how IDE tools (VS Code/GitLens, GitKraken, JetBrains) and prior art (git-bug, DVC, Gerrit, GitHub) handle custom ref visibility. Finding: no tool has solved this declaratively. IDE tools show whatever refs exist in `.git/`, and there's no pattern-based exclusion setting.
+
+The exposure surface narrowed to: only IDE users working directly in the repo where apparatus data is created locally. Clones, CI, remotes, and web UIs are unaffected because custom refs aren't fetched by default.
+
+### Experiment 002: Separate git database
+
+Rather than mitigating the ergonomic issue, we dissolved it. Apparatus data lives in `.apparatus/`, a separate bare git repo alongside the project's `.git/`. Complete bidirectional isolation — no git tool discovers `.apparatus/` because it's not `.git/`. IDE invisibility is total.
+
+This also opens a significant design opportunity: the apparatus remote is configurable independently of the project's code remote. A project defaults to "origin" but can override it. This enables:
+
+- **Access control separation** — different permissions for code vs. apparatus data
+- **Selective observation** — a researcher fetches apparatus data from a project without needing code access
+- **Centralized research data** — multiple projects push apparatus data to a single remote for cross-project observation
+
+### Resolved
+
+- Git is the storage substrate
+- `.apparatus/` (separate bare git repo) is the storage location
+- Configurable remote for apparatus data
+- All four substrate primitives (hierarchy, CAS identity, atomic snapshots, enumeration) confirmed working
+- Hermetic instantiation via `git bundle`, atomic transactions via `git update-ref --stdin`

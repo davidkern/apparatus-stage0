@@ -365,6 +365,53 @@ The containment question should be resolved by implementing both models minimall
 
 Evaluation: which is simpler to implement, handles edge cases more naturally, and makes the CLI's job easier. Full debate artifacts retained in `composition/` and `association/` directories for reference.
 
+## Git substrate experiments
+
+### Experiment 001: Custom refs, data model, hermetic instantiation
+
+**Brief**: `experiment-001-hermetic-instantiation.md`
+**Scripts and results**: `/work/sandbox/exp-001/`
+
+Tested five capabilities: custom ref namespaces, apparatus data model on plumbing, hermetic instantiation via bundle, atomic multi-ref transactions, selective instantiation. All passed. Git is viable as the storage substrate. See `sandbox/exp-001/results.md` for full details.
+
+Key results:
+- Custom refs (`refs/apparatus/...`) invisible to `git branch`, `git tag`, `git clone`. GC preserves them.
+- `git bundle` creates hermetically isolated repos from specified refs. ~30ms, scales with extracted data not source size.
+- `git update-ref --stdin` transactions are truly atomic with CAS support.
+- **Limitation**: `git log --all` includes custom ref commits. No declarative git config option exists to exclude them from traversal (only cosmetic decoration hiding via `log.excludeDecoration`).
+
+### Experiment 002: Separate git database (`.apparatus/`)
+
+**Scripts and results**: `/work/sandbox/exp-002/`
+
+The `git log --all` limitation motivated exploring an alternative: store apparatus data in a separate bare git repo (`.apparatus/`) alongside the project's `.git/`, rather than using custom refs within the project's git database.
+
+Results: **complete solution**. 8/8 tests passed.
+
+- **Total IDE invisibility** — no git tool discovers `.apparatus/`. VS Code, GitLens, GitKraken, terminal `git log --all` — none see apparatus data. The ergonomic problem is dissolved, not mitigated.
+- **Bidirectional isolation** — project git sees no apparatus data; apparatus git (via `GIT_DIR=.apparatus`) sees no project data. No cross-contamination. Both can use the same ref names without collision.
+- **Clone doesn't copy it** — `git clone` of the project ignores `.apparatus/`. Apparatus data requires explicit opt-in via the CLI.
+- **Setup**: one `.gitignore` entry (`.apparatus/`), configured by `apparatus init`.
+- **Full remote round-trip** — push/fetch from `.apparatus/` to its own remote works with standard git protocols.
+
+### Design decision: separate git database
+
+**Resolved: apparatus data lives in `.apparatus/`, a separate bare git repo, not in custom refs within the project's `.git/`.**
+
+This decision provides:
+
+1. **No ref namespace pollution** — apparatus can use `refs/heads/journal`, `refs/heads/investigation/001`, etc. freely. No prefixing conventions needed.
+2. **No ergonomic cost to project developers** — apparatus data is invisible to all git tooling that operates on `.git/`.
+3. **Configurable remote** — the apparatus remote defaults to "origin" (same host as the project) but can be overridden per-project via devenv configuration. This enables:
+   - **Access control separation** — apparatus data remote can have different permissions than the code remote. A researcher who shouldn't write to project code can still read/write apparatus data.
+   - **Selective observation** — a researcher adds a project's apparatus remote to their own `.apparatus/` and fetches. The "observable from outside" behavioral requirement becomes a standard `git fetch`.
+   - **Centralized research data** — multiple projects can push apparatus data to the same remote, giving the research space a single observation point across the fleet.
+   - **Testing isolation** — apparatus data for experimental branches can use a separate remote without affecting the project's git hosting.
+4. **Hermetic instantiation** still works — `git bundle` operates on `.apparatus/` exactly as demonstrated in experiment 001.
+5. **Atomic transactions** still work — `git update-ref --stdin` operates on `.apparatus/`.
+
+All four substrate primitives (hierarchy, CAS identity, atomic snapshots, enumeration) are fully supported. The `.apparatus/` approach preserves every capability from experiment 001 while eliminating the only ergonomic limitation discovered.
+
 ## Exploration log
 
 - Behavioral requirements for all structures defined and expanded with open questions
@@ -373,6 +420,11 @@ Evaluation: which is simpler to implement, handles edge cases more naturally, an
 - Adversarial debate protocol executed on containment question
 - Debate produced design findings (three-layer model, data/query separation, citations) independent of containment resolution
 - Containment itself remains unresolved; experimental direction identified
+- Experiment 001: git viable as substrate — custom refs, bundles, atomic transactions all work. One limitation: `git log --all` shows apparatus commits.
+- Research into prior art (git-bug, DVC, Gerrit, GitHub) confirmed no tool has solved the `--all` visibility problem declaratively.
+- Experiment 002: separate `.apparatus/` git database fully dissolves the visibility problem with complete bidirectional isolation.
+- **Resolved**: apparatus data lives in `.apparatus/`, separate from project `.git/`.
+- Configurable remote enables access control separation, selective observation, and centralized research data collection.
 
 ## Findings
 
@@ -381,3 +433,6 @@ Evaluation: which is simpler to implement, handles edge cases more naturally, an
 3. **Citations** are a candidate mechanism for cross-structural provenance that may work under either containment model. Needs validation.
 4. **Containment is an ontological choice**, not derivable from requirements. Experimental resolution indicated.
 5. **Assumption discovery** is an unresolved tension that neither model handles cleanly. Key experimental test case.
+6. **Git is viable as the storage substrate.** All four substrate primitives are natively supported. Hermetic instantiation via `git bundle`, atomic transactions via `git update-ref --stdin`.
+7. **Apparatus data lives in `.apparatus/`**, a separate bare git repo alongside project `.git/`. Complete IDE invisibility, no ref namespace pollution, standard git protocols for sync.
+8. **Configurable remote** for apparatus data enables access control separation, cross-project observation, and centralized research data collection.
