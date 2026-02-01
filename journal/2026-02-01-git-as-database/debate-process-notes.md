@@ -150,3 +150,101 @@ The Task tool automatically returns a summary of the completed agent's work. Thi
 For this informal attempt: the originating agent's role during position-writing is coordinator, not participant — it does not write either position. The contamination affects the coordinator's neutrality during the evaluation phase, not the independence of the positions themselves. The researcher remains uncontaminated.
 
 For a formal protocol: the coordinator should not receive position summaries until both sides are complete and the exchange phase begins. This requires either (a) a task mechanism that suppresses output summaries, or (b) a coordinator that launches both tasks and only reads results after both complete.
+
+### Drafting process asymmetry
+
+The researcher used an agent-assisted process for their composition position: wrote initial thoughts, had an agent read them, then guided the agent through edits and clarifications. This is a legitimate approach — the goal is the strongest argument, not a writing test — but it reveals a protocol asymmetry.
+
+- **Association**: single-shot agent, primer only, no iteration or human steering
+- **Composition**: iterative human-agent collaboration with multiple rounds of refinement
+
+The composition argument may be stronger due to drafting process quality rather than position strength. In a formal protocol, both sides should use the same drafting method, or the asymmetry should be explicitly accepted and noted when evaluating results.
+
+This also surfaces a broader question for the protocol design: what is the role of the human in a machine-argued position? If the human steers the argument, it's their argument in the agent's prose — which is the intended use. But if the other side has no equivalent steering, the playing field is uneven in a way that isn't about the merits of the positions.
+
+### Protocol terminated early
+
+Researcher called termination after position-writing, before exchange and rebuttal. Reasoning: time-consuming process, diminishing returns, positions capture the core arguments. The positions are the most valuable output — they force each side to construct a coherent argument. Rebuttals sharpen edges but the core is on paper.
+
+This is a data point for protocol design: the full four-phase protocol (positions → exchange → rebuttals → evaluation) may be too heavyweight for an informal design debate. A lighter variant: positions only, followed by joint evaluation, with rebuttals available as an optional escalation if the positions don't resolve the question.
+
+### Position writing completed
+
+Both positions written and saved:
+- `composition/position.md` — researcher-directed, agent-assisted
+- `association/position.md` — single-shot fresh agent from primer only
+
+Coordinator (originating agent) now reads both and facilitates joint evaluation with researcher.
+
+### Rebuttal phase (added back, lighter variant)
+
+After initial evaluation of positions, researcher noted they started coming around to composition while writing the opposing argument — the opposite-to-inclination assignment produced genuine perspective shift, which is evidence the protocol works.
+
+Both sides had strong arguments the other hadn't fully addressed. Rather than skip rebuttals entirely, we opted for a lighter variant: two fresh agents run in parallel, each receiving only the primer + their position + opponent's position. No human steering, no iteration. Symmetric process this time (both single-shot agents from the same materials).
+
+Artifacts: `composition/rebuttal.md`, `association/rebuttal.md`
+
+Both rebuttals completed. Key development: the rebuttals converged on identifying the disagreement as ontological rather than technical. Composition's rebuttal frames it explicitly: "Do knowledge artifacts have intrinsic identity independent of context, or is context constitutive of identity?" Both sides agree that the technical consequences (versioning, provisioning, queries) follow from this ontological choice.
+
+Notable rebuttal moves:
+- **Composition** introduced the data-model/query-model separation as a structural critique of association's "the data model is the query model" claim. Argues for a system-layer index as a necessary companion to composition, not an afterthought.
+- **Composition** reframed cross-container references as "citations" — data owned by the citing structure, not live pointers — arguing this is neither duplication nor association.
+- **Association** conceded the four-primitive substrate is compatible with both models, then argued this undermines composition's claim to substrate stability as a differentiator.
+- **Association** attacked the investigation-inside-design move as "redefinition not resolution" — even granting it, the journal-to-investigation cross-structural relationship remains.
+- **Association** argued that composition's assumption-context argument undermines itself: if assumptions are independent copies with no shared identity, the system cannot help locate all copies when the underlying fact changes.
+
+### Researcher observation: perspective shift during position-writing
+
+The researcher reported being initially opposed to composition but coming around to it while constructing the argument. This is a key finding about the protocol: arguing a position forces engagement with its internal logic in a way that evaluating it from outside does not. The opposite-to-inclination assignment isn't just about fairness — it's an epistemic tool that generates understanding the evaluator wouldn't otherwise have.
+
+## Process findings
+
+What we learned about the adversarial position-taking protocol as a methodology, independent of the design content.
+
+### What worked
+
+1. **Opposite-to-inclination assignment produces perspective shift.** The researcher came around to composition while arguing it — the position they initially opposed. This is the protocol's primary epistemic contribution: forcing engagement with a position's internal logic generates understanding that evaluating from outside does not. The discomfort is productive.
+
+2. **Fresh agents produce genuinely independent arguments.** The association position and rebuttal introduced concepts (semantic fidelity, "you have association whether you call it that or not," graph-as-domain-model) that were not in the originating conversation. Hermetic sessions prevent convergence and produce orthogonal challenge — directly addressing the retrospective's identified failure modes.
+
+3. **The primer review round caught real bias.** Two independent reviewers found different issues, some in opposite directions. The revision produced a meaningfully more neutral document. Without the review, the association side would have been structurally disadvantaged.
+
+4. **Structured tension points prevented talking past.** Both sides had to address the same concrete scenarios, making the positions directly comparable. The researcher flagged these as "leading" but accepted them as necessary for actionable output. This tradeoff is correct.
+
+5. **The protocol produced design findings independent of resolution.** The three-layer architecture, data/query separation, and citation mechanism emerged from the debate itself and are valuable regardless of which side wins. The protocol generates knowledge even when it doesn't produce a decision.
+
+### What didn't work
+
+1. **The full protocol is too heavyweight for informal use.** Four phases (positions → exchange → rebuttals → evaluation) consumed significant time. Rebuttals were nearly cut entirely. For informal design debates, positions + joint evaluation may be sufficient, with rebuttals as optional escalation.
+
+2. **Tool interface creates contamination vectors.** The Task tool returns summaries automatically. The originating agent was exposed to the association position summary before the exchange phase, and the researcher was nearly exposed to it during the primer review. In a formal protocol, the coordinator must not receive outputs until all sides are complete. This requires either suppressed summaries or a collection mechanism that buffers outputs.
+
+3. **Drafting process asymmetry.** The researcher used iterative human-agent collaboration; the association side was single-shot. The composition argument may be stronger due to process quality rather than position strength. A formal protocol should either standardize the drafting method or explicitly accept the asymmetry.
+
+4. **No termination criteria for review cycles.** The primer review could have iterated indefinitely. We resolved this informally (single round, originating agent judges). A formal protocol needs: max review rounds, judge criteria, "good enough" threshold, conflict resolution procedure.
+
+5. **Coordinator neutrality is compromised by exposure.** The originating agent participated in the pre-debate discussion (where both sides' intuitions were expressed), then read both positions and summaries. True coordinator neutrality would require a fresh agent for evaluation, but this adds cost.
+
+### What we would do differently
+
+1. **Lighter default, heavier escalation.** Default protocol: primer → positions → joint evaluation. Escalate to rebuttals only if positions don't resolve or the evaluator identifies specific unaddressed arguments.
+
+2. **Symmetric drafting.** Either both sides use single-shot agents, or both use iterative human-agent collaboration. The choice depends on whether the protocol's goal is to test position strength or to produce the strongest arguments.
+
+3. **Buffered output collection.** The coordinator launches both position agents and only reads results after both signal completion. No summaries in the conversation until the exchange phase.
+
+4. **Separate coordinator from facilitator.** The facilitator (originating agent in this case) manages logistics. A fresh coordinator agent reads all artifacts cold and facilitates evaluation. This addresses the neutrality problem.
+
+5. **Explicit "experiment indicated" exit.** When a debate reduces to an undecidable modeling choice (as this one did), the protocol should have a named exit: "this question is not resolvable by argument; experimental resolution indicated." This prevents additional rounds of increasingly refined but ultimately circular argumentation.
+
+### Protocol as investigation protocol type
+
+This exercise informally prototyped a new investigation protocol type. In the apparatus protocol catalog naming from the triad design plan, this would be something like `experiment-debate` or `experiment-adversarial`:
+
+- **What "doing it" means**: two agents argue committed positions from shared evidence, with structured exchange
+- **What outputs it produces**: position statements, rebuttals, and a set of findings (both domain findings and unresolved tensions suitable for experimental follow-up)
+- **What tool permissions it needs**: file read/write for artifacts, agent launching for hermetic sessions
+- **When to use it**: when a design question has a small number of options with deep implications, and argument can surface the structure of the disagreement even if it can't resolve it
+- **When not to use it**: when the question is empirically testable without first needing to understand the shape of the tradeoff space (just run the experiment directly)
+
+The protocol's distinctive value is that it generates understanding of *why* a question is hard, not just *which answer is better*. The containment debate produced the ontological framing (identity vs. context) and the three-layer architecture — neither of which would have emerged from direct experimentation.

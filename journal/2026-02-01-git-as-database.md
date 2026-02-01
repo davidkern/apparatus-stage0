@@ -14,3 +14,77 @@ The specific capabilities to investigate:
 The directory-based `apparatus.store/` plan from yesterday serves dual purpose: it's the baseline implementation we can ship immediately, and it's the requirements specification for what a git-native approach would need to replace.
 
 Exploration notes: `journal/2026-02-01-git-as-database/git-exploration-notes.md`
+
+## Behavioral requirements phase
+
+Before evaluating git or any other technology, we needed an operational definition of what the storage layer must support. We extracted behavioral requirements for each structure type, deliberately stated without implementation assumptions (no files, directories, or git objects — just behaviors).
+
+Key reframing: the original triad design plan's requirements were carry-over from the informal file-based implementation. We moved up a level of abstraction to define requirements as behaviors (e.g., "chronological append" rather than "date-prefixed markdown files").
+
+This led to several design-level discoveries:
+
+**Three concerns, not one.** The storage design must address storage semantics, isolation boundaries, and access policy as distinct layers. Easy to conflate.
+
+**Enforcement philosophy.** The system doesn't prevent a knowledgeable engineer from modifying state. It makes normal operating paths structurally sound. Administrator tooling for repairs is desirable.
+
+**Universal instantiation.** All structures need to be instantiable — not just for experiments but for self-modification testing. The apparatus/apparatus-stage0 split is an artificial workaround for the lack of an isolation boundary. The most demanding scenario (practitioner in a hermetic sandbox using apparatus tooling, unable to tell it's a sandbox) drives the architecture.
+
+**The apparatus CLI as boundary enforcer.** We assume a CLI that is the sole interface, mediates all access, maintains isolation, enforces policy. Our job is to design the storage so the CLI's job is easy — not to make the storage enforce policy itself.
+
+**Environment interface spectrum.** The environment doesn't need to see git at all. If the CLI is the only interface, the storage is an implementation detail. This makes the storage format and environment boundary questions separable.
+
+Full behavioral requirements with open questions documented in the exploration notes.
+
+## Containment debate
+
+We identified seven clusters of open design questions, prioritized by design space size × impact. Containment (composition vs. association) was first: smallest space, highest impact.
+
+Rather than discuss it collaboratively (which the retrospective identified as convergence-prone), we ran a structured adversarial debate:
+
+- **Shared priming document** reviewed for neutrality by both a fresh agent and the researcher (arguing composition). Both found bias — in different directions on specific points — and the primer was revised.
+- **Independent position statements**: researcher argued composition (against natural lean toward association), fresh agent argued association (against originating agent's lean toward composition).
+- **Parallel rebuttals**: two fresh agents, each given primer + their position + opponent's position.
+- **Joint evaluation**: originating agent and researcher assessed all four documents.
+
+The debate did not resolve the containment question — it reduced to an ontological disagreement about whether knowledge artifacts have intrinsic identity independent of context (association) or whether context is constitutive of identity (composition). This is a modeling choice, not derivable from requirements. Experimental resolution is indicated.
+
+### Design findings (independent of containment resolution)
+
+1. **Three-layer architecture** — substrate (4 primitives: hierarchy, CAS identity, atomic snapshots, enumeration), structure layer (domain semantics), system layer (cross-structure orchestration). Both sides accepted this. Resolved.
+
+2. **Data model / query model separation** — storage layout optimizes for write coherence and provisioning; a separate index layer optimizes for cross-structural queries. Decouples two decisions we were conflating. Resolved.
+
+3. **Citations as cross-structural mechanism** — a structure records "I relied on finding Y from investigation X at version Z" as owned data, not a live pointer. May work under either containment model. Needs validation.
+
+4. **Assumption discovery** — neither model cleanly handles "find everything affected by this change." Key experimental test case.
+
+5. **Containment** — unresolved. Both positions internally consistent. Experiment needed: implement both minimally against the four substrate primitives, run the same task (journal/investigation overlap, cross-structural citation, assumption impact analysis, selective provisioning).
+
+### Process findings
+
+The adversarial debate protocol directly addresses the retrospective feedback from the previous session:
+
+- **Convergence rate**: committed positions prevent drift; fresh agents produce orthogonal challenge
+- **Abstraction management**: primer scope, tension points, and prescribed structure keep the debate bounded; "experiment indicated" is a named exit condition
+- **Conceptual origination skew**: researcher originated the three-layer architecture (from composition position, against their natural lean); origination distributed because each side must construct, not just respond
+- **Knowledge preservation**: both positions and rebuttals are retained as artifacts — the rejected reasoning is preserved alongside the findings
+
+The protocol itself is a candidate investigation protocol type (`experiment-adversarial`). Full process notes: `journal/2026-02-01-git-as-database/debate-process-notes.md`
+
+## Artifacts
+
+```
+journal/2026-02-01-git-as-database/
+├── git-exploration-notes.md          # Design notes: requirements, findings, open questions
+├── debate-process-notes.md           # Process notes: protocol design, execution, findings
+├── containment-debate-primer-v1.md   # Original primer (preserved, read-only)
+├── containment-debate-primer.md      # Revised primer (used for debate)
+├── composition/
+│   ├── primer-review.md              # Researcher's neutrality review
+│   ├── position.md                   # Composition position statement
+│   └── rebuttal.md                   # Composition rebuttal to association
+└── association/
+    ├── primer-review.md              # Fresh agent's neutrality review
+    ├── position.md                   # Association position statement
+    └── rebuttal.md                   # Association rebuttal to composition
+```

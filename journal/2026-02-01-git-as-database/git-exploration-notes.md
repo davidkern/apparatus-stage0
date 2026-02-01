@@ -304,14 +304,80 @@ In current practice, a researcher writes a journal entry about investigation wor
 - More flexible for unanticipated relationships. If a future structure type needs to reference existing objects, association supports it without restructuring.
 - Closer to how researchers actually think — "I did this work" is one event, not two parallel records.
 
-### Discussion
+### Debate outcome
 
-(To be filled in as we argue positions)
+A structured adversarial debate was conducted (positions and rebuttals in `composition/` and `association/` subdirectories; process documented in `debate-process-notes.md`). The debate did not resolve the containment question but produced several findings that advance the design independently of which option is chosen.
+
+**Status: unresolved.** The disagreement reduced to an ontological question — whether knowledge artifacts have intrinsic identity independent of context (association) or whether context is constitutive of identity (composition). This is a modeling choice, not derivable from the requirements. Experimental resolution is the indicated next step.
+
+## Design findings from containment debate
+
+### 1. Three-layer architecture (consensus)
+
+Both positions accepted a three-layer model for the system. This emerged from the composition argument but association's rebuttal did not contest the layering — only what each layer does.
+
+| Layer | Role | What it owns |
+|-------|------|-------------|
+| **Storage substrate** | Physical organization | Hierarchy, content-addressable identity, atomic snapshots, enumeration with metadata |
+| **Structure layer** | Domain semantics | Journal, investigation, design — each implementing domain-specific operations against the substrate |
+| **System layer** | Cross-structure orchestration | Dispatching operations across structures, collating results, enforcing isolation, maintaining indexes |
+
+The four substrate primitives — hierarchical containment, content-addressable identity, atomic snapshots, enumeration with metadata — were accepted by both sides as a technology-agnostic contract that any storage backend must satisfy. This is a resolved design element regardless of the containment decision.
+
+### 2. Data model / query model separation (consensus)
+
+Composition's rebuttal introduced the principle that the storage layout and the query model are separate concerns:
+
+- **Storage layout** optimizes for: write coherence, versioning, provisioning completeness, isolation guarantees
+- **Query layer** optimizes for: cross-structural traversal, impact analysis, evidence chains, search
+
+A system-layer index (derived from the stored data, rebuilt during provisioning) provides cross-structural query capability without requiring the storage model to be a graph. This decouples two decisions we were previously conflating: how data is organized for integrity vs. how data is accessed for queries.
+
+### 3. Citations as a cross-structural mechanism (emerged, needs validation)
+
+The composition rebuttal introduced "citations" as distinct from both duplication and live references:
+
+- A structure records "I relied on finding Y from investigation X at version Z" as **data owned by the citing structure**
+- This is not a live pointer — if the cited source is absent (e.g., not provisioned into an isolated environment), the citation remains valid as a historical record
+- This is not duplication — the citing structure does not contain a copy of the finding, only an attributed reference to it at a specific version
+
+This pattern may provide cross-structural traceability under either containment model. Under composition, citations are the mechanism for cross-structure provenance without breaking containment. Under association, citations could coexist with live references for cases where provenance preservation matters more than automatic propagation.
+
+**Unvalidated**: whether citations are genuinely distinct from association or are "association with different terminology" (association's rebuttal raised this challenge).
+
+### 4. Unresolved tension: assumption discovery
+
+Both sides acknowledged this problem without resolving it:
+
+- Under composition, assumptions exist as independent copies within each design. When an underlying fact changes, how does the system locate all relevant copies? Content-hash correlation was suggested but amounts to reinventing shared identity.
+- Under association, assumptions are shared objects with contextual metadata on references. Finding affected decisions is an index lookup, but the shared object may produce false positives when the same label means different things in different contexts.
+
+Neither model cleanly solves "find everything affected by this change" without either shared identity (association's strength) or contextual precision (composition's strength). This tension is a strong candidate for experimental investigation.
+
+### 5. Containment resolution: experimental direction
+
+The containment question should be resolved by implementing both models minimally against the four substrate primitives and running the same task against each. The task should exercise:
+
+1. Journal entry describing investigation work (overlap)
+2. Design decision citing an investigation finding (cross-structural reference)
+3. Assumption change with impact analysis (discovery)
+4. Partial environment provisioning (selective instantiation)
+
+Evaluation: which is simpler to implement, handles edge cases more naturally, and makes the CLI's job easier. Full debate artifacts retained in `composition/` and `association/` directories for reference.
 
 ## Exploration log
 
-(Notes added as we investigate)
+- Behavioral requirements for all structures defined and expanded with open questions
+- Open questions clustered by design space size and impact, prioritized for resolution
+- Containment identified as highest priority (smallest space, highest impact)
+- Adversarial debate protocol executed on containment question
+- Debate produced design findings (three-layer model, data/query separation, citations) independent of containment resolution
+- Containment itself remains unresolved; experimental direction identified
 
 ## Findings
 
-(Conclusions and decisions recorded here)
+1. **Four substrate primitives** accepted as the storage contract: hierarchical containment, content-addressable identity, atomic snapshots, enumeration with metadata. Technology-agnostic.
+2. **Storage and query are separate concerns.** Storage layout optimizes for integrity; a derived index optimizes for cross-structural queries.
+3. **Citations** are a candidate mechanism for cross-structural provenance that may work under either containment model. Needs validation.
+4. **Containment is an ontological choice**, not derivable from requirements. Experimental resolution indicated.
+5. **Assumption discovery** is an unresolved tension that neither model handles cleanly. Key experimental test case.
