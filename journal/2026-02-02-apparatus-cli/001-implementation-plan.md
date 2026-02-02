@@ -8,6 +8,8 @@ Build a dev-quality CLI (`apparatus`) in Rust that implements Phases 1-2 of the 
 
 The implementation goes in `apparatus/` (the nested git repository in this research workspace). The apparatus repo currently contains `apparatus.md` (the process document from bootstrap experiments), `devenv.nix`, and a `skills/` directory. The CLI source will be a new Rust project alongside these.
 
+To run commands in the apparatus repo context from the research workspace, use `practitioner <command>`. This executes inside the apparatus directory with the apparatus devenv shell (Rust toolchain, build deps, etc.). Examples: `practitioner cargo build`, `practitioner cargo test`, `practitioner git status`.
+
 ## Design references
 
 The full specification is at `journal/2026-02-01-git-as-database/design/006 - design.md`. The implementation scope and simplifying assumptions are at `journal/2026-02-01-git-as-database/design/007 - implementation scope.md`. This plan distills what an implementer needs to know without requiring those documents.
@@ -326,5 +328,5 @@ GIT_DIR=.git/apparatus/store git diff <commit1> <commit2>
 These should be resolved during implementation and recorded in the notes file:
 
 1. **Entry content workflow.** For Phase 2, `--file` and `--message` flags plus stdin. Editor integration (`$EDITOR`) is a Phase 2+ nicety.
-2. **Error messages.** Should be actionable. "No apparatus store found — run `apparatus init` in a git repository" rather than "file not found."
-3. **Tree building with git2.** The `git2` crate's `TreeBuilder` API vs. building from scratch. Need to understand how to compose nested trees.
+2. ~~**Error messages.** Should be actionable.~~ **Resolved** in scaffold: `store.rs` uses this pattern throughout (e.g. "No apparatus store found... Run `apparatus init`").
+3. ~~**Tree building with git2.** The `git2` crate's `TreeBuilder` API vs. building from scratch.~~ **Resolved** in scaffold: using `TreeBuilder` via `repo.treebuilder(None)` + `insert()` + `write()`. Nested trees built bottom-up (build inner tree first, get its OID, insert as a tree entry in the parent).

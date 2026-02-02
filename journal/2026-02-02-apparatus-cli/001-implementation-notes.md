@@ -17,8 +17,8 @@ Repeated here for quick reference — these are assumptions we know are wrong bu
 
 1. **Single writer.** No concurrent mutations. Bare `update-ref` instead of CAS with `verify`.
 2. **Low object count.** Hundreds, not 300k. JSON index with sequential scan.
-3. **Panic on conflict.** `sync push` fails on non-fast-forward. No merge, no fork detection.
-4. **JSON with sorted keys.** Canonical by convention (single serializer, compact, sorted keys).
+3. **Error on conflict.** `sync push` fails on non-fast-forward. No merge, no fork detection.
+4. **Canonical JSON (RFC 8785).** `serde_json_canonicalizer` — compact, sorted keys, normalized numbers.
 
 The design accommodates removing all four without reworking existing features.
 
@@ -28,7 +28,7 @@ The design accommodates removing all four without reworking existing features.
 
 Setting up the implementation plan. The phased dependency graph from 007 gives us a clear build order — Phase 1 (foundation) through Phase 5 (design + citations) is the critical path, with Phases 6-8 as independent extensions.
 
-The first question to resolve for the plan document: how much of the 006 specification to inline vs. reference. Fresh agents need enough context to implement correctly but shouldn't need to read 600 lines of design spec. The plan should distill the specification into implementation-ready instructions per phase.
+The first question to resolve for the plan document: how much of the 006 specification to inline vs. reference. Fresh agents need enough context to implement correctly but shouldn't need to read 600 lines of design spec. The plan should distill the specification into implementation-ready instructions per phase. **Resolved**: inlined data model, function signatures, and acceptance criteria per phase into the plan document.
 
 ### Devenv setup
 
@@ -40,7 +40,7 @@ Added Rust toolchain and development infrastructure to `apparatus/devenv.nix`:
 - **Dev utilities**: tree (added), coreutils (explicit), jq and git (already present)
 - **CARGO_TARGET_DIR**: set to `.devenv/state/apparatus/target` to keep build artifacts out of source tree (matches gregarious pattern)
 
-Verified through both `devenv shell` and `practitioner` sandbox. Note: `CARGO_TARGET_DIR` is empty in the practitioner sandbox (enterShell doesn't run), so sandboxed agents will use default `target/` — acceptable for experiments.
+Verified through both `devenv shell` and `practitioner` sandbox. ~~Note: `CARGO_TARGET_DIR` is empty in the practitioner sandbox (enterShell doesn't run), so sandboxed agents will use default `target/`.~~ **Resolved**: practitioner now runs through `devenv shell`, so `CARGO_TARGET_DIR` is set correctly.
 
 ### Canonical JSON serialization
 
@@ -49,6 +49,20 @@ Chose `serde_json_canonicalizer` (RFC 8785) over `canonical_json`. RFC 8785 is a
 ### Git tree inspection patterns
 
 Added a section to the plan documenting how to use standard unix tools against the bare git repo store. Five patterns: `ls-tree`, `git show` + `jq`, `git archive` materialization, `for-each-ref`, and `git diff`. This primes implementation agents toward using these tools for debugging and validation, and reduces the pressure to add pretty-printing to the CLI itself early on.
+
+### Process: using `practitioner` for apparatus repo operations
+
+From the research repo context, run apparatus repo commands via `practitioner <command>` rather than `cd /work/apparatus && ...`. The practitioner script runs commands inside the apparatus directory through a bubblewrap sandbox with the apparatus devenv shell. This avoids wrong-directory mistakes (shell state doesn't persist between tool calls) and ensures the command gets the apparatus devenv environment (Rust toolchain, etc.). Example: `practitioner git status`, `practitioner cargo build`.
+
+### Git hooks: compiler version mismatch — resolved
+
+The devenv `git-hooks.hooks` (clippy, rustfmt) run via pre-commit, which generates a `.pre-commit-config.yaml` with hardcoded nix store paths to tool binaries. These defaulted to system Rust (1.91.1, from `pkgs.clippy`/`pkgs.rustfmt`) rather than the rust-overlay toolchain (1.92.0). The cached `CARGO_TARGET_DIR` artifacts from 1.92.0 builds were then unreadable by the 1.91.1 hooks.
+
+**Fix**: `packageOverrides` on the clippy and rustfmt hooks, pointing at `config.languages.rust.toolchainPackage` (the monolithic derivation with sysroot). Using the individual `toolchain.clippy`/`toolchain.cargo` attributes failed with "can't find crate for `std`" — the sysroot isn't included when components are referenced individually. The aggregate `toolchainPackage` includes everything. Commit `3f12d82`.
+
+### Practitioner script fix — resolved
+
+Identified that the practitioner script was using a stale devenv profile (resolved at bubble construction time from `.devenv/profile` symlink). Fixed by wrapping commands in `devenv shell -q` inside the bubble, matching the pretool hook pattern. Now changes to `devenv.nix` are picked up immediately. Commit `480f887` in research repo.
 
 ### apparatus.md — the tension
 
