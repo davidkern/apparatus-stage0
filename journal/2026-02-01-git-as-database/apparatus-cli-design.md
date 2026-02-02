@@ -6,15 +6,15 @@ The Apparatus is a structured knowledge system for tracking design reasoning acr
 
 The Apparatus CLI is the sole supported interface for reading and writing apparatus data. It mediates all access to the underlying storage, enforces mutability rules, maintains a derived index for queries, and provides hermetic instantiation for isolated experimentation. The CLI is both the enforcement boundary for data integrity and the user's primary interaction surface.
 
-Apparatus data is stored in `.apparatus/`, a bare git repository that lives alongside a project's `.git/` directory. This separation provides complete bidirectional isolation: project git tooling never discovers apparatus data, and apparatus operations never see project data. The CLI accesses `.apparatus/` by setting `GIT_DIR=.apparatus` and uses git plumbing commands exclusively -- no porcelain. All writes go through `git hash-object`, `git mktree`, `git commit-tree`, and `git update-ref`. All reads go through `git cat-file`, `git ls-tree`, and `git for-each-ref`.
+Apparatus data is stored in the **apparatus store**, a bare git repository at `$DEVENV_STATE/apparatus/store/`. The store lives inside devenv's state directory, invisible to the project's git tooling and IDE. Project git operations never discover apparatus data, and apparatus operations never see project data. The CLI derives the store path from `$DEVENV_STATE` at runtime and accesses it by setting `GIT_DIR=$DEVENV_STATE/apparatus/store` using git plumbing commands exclusively -- no porcelain. All writes go through `git hash-object`, `git mktree`, `git commit-tree`, and `git update-ref`. All reads go through `git cat-file`, `git ls-tree`, and `git for-each-ref`.
 
-The design documented here is the product of six adversarial debates (on mutability boundaries, identity, metadata model, granularity, querying, and versioning) and two validation experiments (git substrate capabilities and `.apparatus/` isolation). Each section states resolved decisions as facts. Unresolved tensions are collected in Section 12.
+The design documented here is the product of six adversarial debates (on mutability boundaries, identity, metadata model, granularity, querying, and versioning) and two validation experiments (git substrate capabilities and store isolation). Each section states resolved decisions as facts. Unresolved tensions are collected in Section 12.
 
 ## 2. Architecture
 
 The system follows a three-layer architecture accepted during the containment debate:
 
-**Storage substrate.** The `.apparatus/` bare git repo. Provides four primitives: hierarchical containment (trees), content-addressable identity (SHA-based object store), atomic snapshots (commits and `update-ref --stdin` transactions), and enumeration with metadata (`for-each-ref`, `ls-tree`). The substrate is a standard git repository. No custom object types or storage extensions are used.
+**Storage substrate.** The apparatus store (`$DEVENV_STATE/apparatus/store/`), a bare git repo. Provides four primitives: hierarchical containment (trees), content-addressable identity (SHA-based object store), atomic snapshots (commits and `update-ref --stdin` transactions), and enumeration with metadata (`for-each-ref`, `ls-tree`). The substrate is a standard git repository. No custom object types or storage extensions are used.
 
 **Structure layer.** Domain-specific logic for each structure type (journal, investigation, design). Each structure defines its own object schemas, lifecycle states, state transitions, and which states are terminal. The structure layer maps domain operations (add an entry, ratify a decision) onto substrate primitives (hash a blob, build a tree, create a commit, update a ref).
 
@@ -24,9 +24,9 @@ Layer interaction follows a strict direction: the system layer calls into struct
 
 ## 3. Storage Format Specification
 
-### The `.apparatus/` directory
+### The store directory
 
-A bare git repository initialized with `git init --bare .apparatus`. The project's `.gitignore` includes `.apparatus/` to prevent it appearing in project git status. The apparatus has its own independent remote for push/fetch operations, configured separately from the project's remotes.
+A bare git repository at `$DEVENV_STATE/apparatus/store/`, initialized with `git init --bare "$DEVENV_STATE/apparatus/store"`. The store lives inside devenv's state directory, which is already gitignored by the standard `.devenv*` pattern. The apparatus has its own independent remote for push/fetch operations, configured separately from the project's remotes.
 
 ### The meta ref
 
@@ -323,7 +323,7 @@ No temporal index or type-status index. At the expected scale (hundreds to low t
 
 ### Storage location
 
-The index is stored as a file in `.apparatus/` outside the git object store (e.g., `.apparatus/index.json`). It is not a git blob. This avoids polluting the object store with derived data that changes on every operation. The index is not included in instantiation bundles; it is regenerated after instantiation.
+The index is stored as a file in the store directory outside the git object store (e.g., `$DEVENV_STATE/apparatus/store/index.json`). It is not a git blob. This avoids polluting the object store with derived data that changes on every operation. The index is not included in instantiation bundles; it is regenerated after instantiation.
 
 ### Rebuild mechanism
 
@@ -342,16 +342,18 @@ Instantiation creates a hermetically isolated copy of apparatus data. The target
 ### The three-step sequence
 
 ```bash
-# 1. Bundle the desired refs from the source apparatus
-GIT_DIR=.apparatus git bundle create apparatus.bundle \
+STORE="$DEVENV_STATE/apparatus/store"
+
+# 1. Bundle the desired refs from the source store
+GIT_DIR="$STORE" git bundle create apparatus.bundle \
   refs/apparatus/meta \
   refs/apparatus/investigation/inv-001
 
 # 2. Initialize an empty bare repo at the target
-git init --bare /target/.apparatus
+git init --bare /target/store
 
 # 3. Fetch the bundle into the target
-GIT_DIR=/target/.apparatus git fetch apparatus.bundle \
+GIT_DIR=/target/store git fetch apparatus.bundle \
   'refs/apparatus/meta:refs/apparatus/meta' \
   'refs/apparatus/investigation/inv-001:refs/apparatus/investigation/inv-001'
 ```
@@ -378,25 +380,27 @@ The apparatus remote is configured independently from the project's git remotes.
 
 ### The GIT_DIR access pattern
 
-All remote operations prefix commands with `GIT_DIR=.apparatus`:
+All remote operations set `GIT_DIR` to the store path:
 
 ```bash
-# Add a remote to the apparatus
-GIT_DIR=.apparatus git remote add origin git@host:apparatus-data.git
+STORE="$DEVENV_STATE/apparatus/store"
+
+# Add a remote to the store
+GIT_DIR="$STORE" git remote add origin git@host:apparatus-data.git
 
 # Push all apparatus refs
-GIT_DIR=.apparatus git push origin 'refs/apparatus/*:refs/apparatus/*'
+GIT_DIR="$STORE" git push origin 'refs/apparatus/*:refs/apparatus/*'
 
 # Fetch all apparatus refs from the remote
-GIT_DIR=.apparatus git fetch origin 'refs/apparatus/*:refs/apparatus/*'
+GIT_DIR="$STORE" git fetch origin 'refs/apparatus/*:refs/apparatus/*'
 ```
 
 ### Full round-trip workflow
 
 1. **Source project:** Researcher creates apparatus data. Pushes with `apparatus sync push`.
 2. **Shared remote:** Bare git repo receives apparatus refs.
-3. **Target project:** Another researcher (or the same researcher on a different machine) runs `apparatus sync fetch`. This fetches refs into their local `.apparatus/` and triggers an index rebuild.
-4. **Observation:** A researcher can add another project's apparatus remote to their own `.apparatus/` and fetch, enabling cross-project observation without modifying the observed project.
+3. **Target project:** Another researcher (or the same researcher on a different machine) runs `apparatus sync fetch`. This fetches refs into their local store and triggers an index rebuild.
+4. **Observation:** A researcher can add another project's apparatus remote to their own store and fetch, enabling cross-project observation without modifying the observed project.
 
 The CLI wraps these operations so users do not need to construct `GIT_DIR` commands manually.
 
@@ -416,7 +420,7 @@ The meta ref (`refs/apparatus/meta`) is the first thing the CLI reads. Its conte
 
 ### CLI boot sequence
 
-1. Set `GIT_DIR=.apparatus`.
+1. Set `GIT_DIR=$DEVENV_STATE/apparatus/store`.
 2. `git rev-parse refs/apparatus/meta` -- does the meta ref exist?
 3. **If yes:** `git cat-file blob <sha>` -- read the format version.
    - Recognized version: use the corresponding layout module.
@@ -443,7 +447,7 @@ Per-apparatus: when the CLI encounters an unrecognized format version, it produc
 
 **Synopsis:** `apparatus init`
 
-Initializes `.apparatus/` in the current project directory. Runs `git init --bare .apparatus`, writes a blob containing `format: 1`, points `refs/apparatus/meta` at the blob via `update-ref`, and adds `.apparatus/` to `.gitignore` if not already present. Creates an empty index file.
+Initializes the apparatus store at `$DEVENV_STATE/apparatus/store/`. Runs `git init --bare "$DEVENV_STATE/apparatus/store"`, writes a blob containing `format: 1`, points `refs/apparatus/meta` at the blob via `update-ref`. Creates an empty index file.
 
 **Git plumbing:** `git init --bare`, `git hash-object -w --stdin`, `git update-ref`.
 
@@ -563,7 +567,7 @@ Creates a hermetic copy of apparatus data at the target path. Without `--ref` fl
 
 Pushes all apparatus refs to the configured apparatus remote. Defaults to `origin`.
 
-**Git plumbing:** `GIT_DIR=.apparatus git push <remote> 'refs/apparatus/*:refs/apparatus/*'`.
+**Git plumbing:** `GIT_DIR="$DEVENV_STATE/apparatus/store" git push <remote> 'refs/apparatus/*:refs/apparatus/*'`.
 
 ### `apparatus sync fetch`
 
@@ -571,7 +575,7 @@ Pushes all apparatus refs to the configured apparatus remote. Defaults to `origi
 
 Fetches all apparatus refs from the configured apparatus remote. Triggers an index rebuild after fetch.
 
-**Git plumbing:** `GIT_DIR=.apparatus git fetch <remote> 'refs/apparatus/*:refs/apparatus/*'`, then index rebuild.
+**Git plumbing:** `GIT_DIR="$DEVENV_STATE/apparatus/store" git fetch <remote> 'refs/apparatus/*:refs/apparatus/*'`, then index rebuild.
 
 ### `apparatus rebuild-index`
 
@@ -603,7 +607,7 @@ Regenerates the derived index from scratch. Walks all refs under `refs/apparatus
 
 ### Index and querying
 
-8. **Index storage vs. bundling.** The index lives outside the git object store as a file in `.apparatus/`. It is regenerated on instantiation. Whether the interaction between index file updates and `update-ref` transactions (a two-phase operation) creates consistency hazards needs implementation testing. Implementation-level.
+8. **Index storage vs. bundling.** The index lives outside the git object store as a file in the store directory. It is regenerated on instantiation. Whether the interaction between index file updates and `update-ref` transactions (a two-phase operation) creates consistency hazards needs implementation testing. Implementation-level.
 
 9. **Citation role typing.** Should citation pairs include semantic role ("relies-on" vs. "supersedes")? Typed citations enable richer queries but add schema complexity. Deferred. Implementation-level.
 
