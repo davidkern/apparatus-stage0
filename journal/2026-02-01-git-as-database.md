@@ -222,3 +222,57 @@ journal/2026-02-01-git-as-database/
 │       ├── side-b/position.md
 │       └── synthesis.md
 ```
+
+## Reviewed design with git technical docs
+
+Had agent read contents of all git/Documentation/technical content and then critique the design.
+
+- original design draft - `design/000 - design.md`
+- critique from git technical documentation - `design/001 - critique - git technical docs.md`
+- questions and recommendations - `design/002 - recommendation - git technical docs.md`
+
+## Prior art: code review systems storing data in git
+
+Researched two production systems that use git as a database for code review metadata, to inform the apparatus storage design.
+
+**git-appraise** (Google) -- Fully distributed code review with no server. Stores review data as git notes under `refs/notes/devtools/{reviews,discuss,ci,analyses}`. Each datum is a single line of JSON, enabling automatic conflict-free merge via git's built-in `cat_sort_uniq` notes merge strategy (concatenate, sort, deduplicate). Four JSON schemas (request, comment, CI, analysis) with a `v` field for format evolution. Key insight: format-constrained serialization (one JSON line per datum) makes distributed merge trivial but limits data to flat structures.
+
+**Gerrit NoteDb** -- Migrated from SQL to pure git storage in Gerrit 3.0. Each change's metadata is a linear DAG of commits on `refs/changes/YZ/XYZ/meta`, where commit messages use structured footers (`Patch-set:`, `Label:`, `Status:`, `Reviewer:`, etc. -- 29 footer keys total). Inline comments stored as JSON blobs in a NoteMap within the commit tree, keyed by patchset commit SHA. Account data on per-user branches in All-Users (`refs/users/CD/ABCD`). External IDs as git notes with git-config-format blobs. Project config on `refs/meta/config` (INI-format `project.config` + `groups` TSV). Ref sharding (`refs/changes/YZ/...`) for performance at scale. Server serializes writes; concurrent modifications resolved by rebasing meta commits.
+
+Comparative finding: git-appraise optimizes for distributed conflict-free merge (flat data, append-only lines); Gerrit optimizes for auditability and rich structure (commit DAG as event log, NoteMap for comments, tree objects for hierarchy). Apparatus needs elements of both: distributed merge (like git-appraise) with hierarchical structure (like Gerrit).
+
+- prior art research - `design/003 - prior art - code review in git.md`
+
+## Prior art survey: git-like CAS for structured data (databases, issue trackers, data lakes)
+
+Surveyed tools that use git or git-like content-addressable storage for structured data beyond code review. Full writeup: `design/004 - prior art - git as structured data store.md`
+
+Tools examined: git-dit (issues as commits), git-bug (operation-based model with Lamport clocks), Noms (origin of prolly trees, content-addressable database), Dolt (SQL database on prolly trees with cell-level three-way merge), Git LFS (two-tier CAS via clean/smudge filters), git notes (metadata without hash mutation), lakeFS (prolly trees for object storage), Fossil (SQLite as git alternative with integrated tickets), GitDocumentDB (git as CRDT), IPFS (network-level CAS).
+
+Key design validations for apparatus: ref-namespace isolation is well-established prior art, content-addressed identity as substrate with assigned IDs as a layer on top is the standard pattern, our immutable-blob approach sidesteps the canonical serialization problem that Noms/Dolt solve with prolly trees, and the storage/query separation we adopted is independently validated by Fossil and Dolt. Primary future concern identified: if apparatus ever needs distributed concurrent editing, field-level merge (Dolt's approach) and operation-based models (git-bug's approach) are the two proven paths.
+
+## Prior art synthesis: cross-cutting findings
+
+Synthesized findings from all 12 tools examined (git-bug, git-annex, git-appraise, Gerrit NoteDb, Jujutsu, DVC, git-dit, Dolt, Noms, Fossil, GitDocumentDB, lakeFS) into a single document organized by apparatus design concern rather than by tool.
+
+Additional tools examined in this pass: **git-annex** (union-mergeable log format on an orphan branch, journal-as-WAL with overlay reads, SQLite caches with stored-ref-SHA staleness detection), **Jujutsu** (operation log as append-only DAG for undo/concurrent access, `refs/jj/keep/*` for GC protection, change-id commit header standardized jointly with GitButler and adopted by Gerrit, algebraic conflict representation on trees), **DVC** (experiment tracking via `refs/exps/<hash>/<name>`, invisible to porcelain, promotable to branches).
+
+Key findings that affect the apparatus design:
+
+1. **Canonical serialization is non-negotiable.** Every tool that uses content-addressed identity has solved this. Three strategies: canonical by construction (binary formats), canonical by constraint (trivially simple text), canonical by convention (single serializer, never reserialize). YAML fits none. This strengthens the case for JSON with sorted keys.
+
+2. **Separate store validated.** Jujutsu's internal mode (bare repo at `.jj/repo/store/git/`) independently validates the apparatus approach. No tool has solved IDE visibility of custom refs declaratively; separate store is the only complete solution.
+
+3. **Index staleness via stored ref SHA.** git-annex stores the branch HEAD SHA at index-build time and compares on read. More robust than a generation counter for detecting when the index needs updating. Apparatus should adopt this.
+
+4. **Commit trailers for operational metadata.** Gerrit uses 29 structured footer keys in commit messages, queryable via `for-each-ref --format='%(trailers:key=...)'`. The apparatus design should use trailers for the audit trail rather than leaving commit messages unspecified.
+
+5. **git notes for annotations on frozen objects.** Resolves the lifecycle contradiction (annotations advancing terminal structure refs). Notes live in separate refs, don't affect annotated objects' SHAs, and have built-in merge strategies. Both git-appraise and Gerrit use notes in production.
+
+6. **Two-layer identity is the universal pattern.** Jujutsu (change ID + commit SHA), Gerrit (change number + patchset SHA), apparatus (assigned ID + content SHA) — all independently arrived at the same design. Stable logical identity + content-addressed precision.
+
+- synthesis document - `design/005 - prior art - synthesis.md`
+- detailed git-bug research (operation DAG model, Lamport clocks, empty-blob metadata, JSON serialization)
+- detailed git-annex research (union merge, journal/WAL, SQLite caches, location log format, hashed subdirectories)
+- detailed Jujutsu research (operation log, GC protection refs, conflict algebra, split storage model)
+- detailed DVC research (experiment refs, baseline-keyed hierarchy, porcelain invisibility)
