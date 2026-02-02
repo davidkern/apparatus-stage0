@@ -82,8 +82,11 @@ BWRAP_ARGS=(
     --setenv BUBBLE_INDICATOR "🫧"
 )
 
+# Resolve the apparatus devenv binary for use inside the bubble
+APPARATUS_DEVENV="$(cd "$APPARATUS_DIR" && command -v devenv)"
+
 if [[ $# -eq 0 ]]; then
-    exec bwrap "${BWRAP_ARGS[@]}" -- "${SHELL:-/bin/bash}" -l
+    exec bwrap "${BWRAP_ARGS[@]}" -- "$APPARATUS_DEVENV" shell -q
 else
-    exec bwrap "${BWRAP_ARGS[@]}" -- "$@"
+    exec bwrap "${BWRAP_ARGS[@]}" -- "$APPARATUS_DEVENV" shell -q -- "$@"
 fi
