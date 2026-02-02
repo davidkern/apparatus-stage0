@@ -1,204 +1,257 @@
-# Adopting the Apparatus Devenv Module: Unification Plan
+# Apparatus Module Unification: Implementation Plan
 
-## Goal
+## Background
 
-Unify the three repos (research, gregarious, apparatus) so that common Claude Code integration — the devenv skill, PreToolUse hook, SessionStart hook, and settings.json generation — is defined once in the apparatus devenv module and configured per-consumer via its options. Each repo retains its own isolation strategy during this work; unifying isolation is a later effort.
+The apparatus devenv module (`apparatus/devenv.nix`) provides Claude Code integration for any consuming project: a PreToolUse hook that wraps Bash commands in `devenv shell`, a devenv skill with helper scripts, composable hooks and permissions, and settings.json generation. Two projects already consume it (apparatus itself, gregarious). A third (the research workspace) uses a hand-rolled setup that duplicates the same functionality with drift.
 
-## Current state
+This plan unifies all three repos onto the apparatus module. After this work, the module is the single source of truth for Claude Code integration and development toolchain configuration.
 
-Three repos, three independent realizations of the same conceptual space:
+### Key architectural constraint
 
-| Concern | Research | Gregarious | Apparatus |
-|---------|----------|------------|-----------|
-| Settings generation | `claude.code` devenv option | apparatus module (`files`) | apparatus module (`files`) |
-| PreToolUse hook | Script exists, **not wired** | Module-provided, working | Module-provided, working |
-| SessionStart | `cat research-guide.md` | Module default (devenv reminder) | Module default (devenv reminder) |
-| PostToolUse | `pre-commit run` on Edit/Write | None | None |
-| Devenv skill source | Hand-copied, uses `$DEVENV_BIN` | Module-generated, `$APPARATUS_DEVENV_BIN` | Module-generated, `$APPARATUS_DEVENV_BIN` |
-| Isolation | None (runs as user) | bubblewrap + network control | Entered via practitioner bubble |
-| Permissions | 111 ad-hoc rules (settings.local.json) | Static allow/deny via module | Minimal (practitioner template) |
-| claude script | Direct exec (no isolation) | `BUBBLE_NETWORK=allow bubble claude` | N/A (entered via practitioner) |
+Devenv's `flake: false` import mechanism loads `devenv.nix` from the imported input but does **not** resolve the imported project's own inputs (devenv issue #1611). The imported module receives the *consumer's* inputs via `specialArgs`. This means any `inputs.foo` reference in the module must be declared in every consumer's `devenv.yaml` — leaking implementation details across the interface boundary. The changes below eliminate all external input dependencies from the module so consumers need only declare the apparatus input itself.
 
-Gregarious already imports the apparatus module and configures it via `apparatus.claude.*`. Research does not — it uses `claude.code` (a different devenv option) and hand-copied skill files. The apparatus repo self-hosts the module.
+### Hook merging behavior
 
-## Why the isolation strategies can coexist
+The module defines default hooks (PreToolUse for devenv shell wrapping, SessionStart for devenv reminder). Consumer `extraHooks` are **merged with** these defaults per event type, not replacing them. Consumers only need to add their project-specific hooks.
 
-The module operates at the **file layer** (settings.json, skill files, env vars). Isolation operates at the **process layer** (namespaces, bind mounts, network policy, bubble home templates). These compose without conflict:
+### Design decisions
 
-- The module generates project-level settings; bubble templates provide user-level settings. Claude Code merges both.
-- Research's `settings.local.json` (111 ad-hoc rules) coexists with module-generated `settings.json` — local overrides project.
-- The PreToolUse hook wraps Bash in `devenv shell`. In unconfined research, this just adds the devenv PATH. Inside a bubble, devenv is available via bind-mounted nix store.
-- When research claude calls `practitioner`, the outer devenv shell ensures `practitioner` is in PATH; the inner bubble runs through the apparatus devenv shell. Double-wrapping composes.
+- **MCP servers are deliberately unsupported.** MCP is context-inefficient; use SKILLS instead.
+- **CLAUDE.md is not module-generated.** The `.claude/CLAUDE.md` in any repo is a regular committed file. Project startup context goes through SessionStart hooks (composable via `extraHooks`).
+- **`excludes = ["^external/"]` is a convention, not a configuration point.** Do not add an override option.
 
-## Plan
+## Repos and branches
 
-### Step 1: Verify import mechanism
+All work happens on `apparatus-unification` branches:
 
-Determine how the research repo imports the apparatus module. Gregarious already does this — examine its `devenv.yaml` to understand the import pattern. The module references `inputs.claude-code-overlay` and `inputs.claude-code-overlay.packages` — the research repo needs this input available too.
+| Repo | Path | Role |
+|------|------|------|
+| apparatus | `/work/apparatus` | The module (producer) |
+| research | `/work` | Consumer — the research workspace |
+| gregarious | `/work/gregarious` | Consumer — VR/XR project (stress test) |
 
-### Step 2: Atomic settings swap (research repo)
+Order of operations: modify apparatus first, then research, then gregarious. Research must not break. Gregarious may temporarily break and be reconciled.
 
-In a single edit to `/work/devenv.nix`:
+## What changes in apparatus (the module)
 
-1. Import the apparatus module.
-2. Remove the `claude.code` block (which generates settings.json its own way).
-3. Add `apparatus.claude.extraHooks` for research-specific hooks:
-   - `SessionStart`: `cat research-guide.md`
-   - `PostToolUse`: `pre-commit run` on Write|Edit
-4. Keep the `claude` and `practitioner` scripts as-is (isolation unchanged).
-5. Keep `enterShell` with `DEVENV_BIN` — but note the module also sets `APPARATUS_DEVENV_BIN` (both will be available; the pretool script uses the latter).
+### Vendor claude-code-overlay
 
-The module's `files` option will generate `.claude/settings.json` and `.claude/skills/devenv/*`, replacing the hand-copied versions.
+The module currently depends on `inputs.claude-code-overlay` to get the Claude Code CLI package. This leaks an implementation detail to consumers — they must declare this input in their `devenv.yaml`.
 
-### Step 3: Remove stale hand-copied files (research repo)
+Vendor the derivation directly into apparatus at `nix/claude-code/` (alongside `devenv.nix`). The overlay is a thin wrapper: a `sources.json` (binary URLs + sha256 checksums per platform) and a `package.nix` (fetch, verify, wrap). The module calls `pkgs.callPackage ./nix/claude-code/package.nix {}` instead of referencing `inputs.claude-code-overlay`.
 
-Delete files that the module now generates:
-- `.claude/scripts/devenv-pretool.sh`
-- `.claude/skills/devenv/` (entire directory)
+This also eliminates the `allowUnfree` requirement that the overlay forced on consumers.
 
-These were hand-copied from an earlier version of the apparatus skill and used `$DEVENV_BIN` instead of `$APPARATUS_DEVENV_BIN`.
+The module adds the claude-code binary to `packages` so it is available on PATH in devenv shell. However, consumer `scripts.claude` definitions (which wrap the binary with isolation logic) will shadow the PATH entry. Consumers that define `scripts.claude` should reference the package directly to avoid recursion — see the research and gregarious sections below.
 
-### Step 4: Test research environment
+### Drop rust-overlay, track nixpkgs
 
-Rebuild devenv and verify:
-- [ ] `devenv shell` succeeds (module imports resolve)
-- [ ] `.claude/settings.json` exists and contains PreToolUse hook
-- [ ] `.claude/skills/devenv/` exists with module-generated files
-- [ ] `APPARATUS_DEVENV_BIN` is set in shell
-- [ ] `practitioner echo hello` still works (isolation not broken)
-- [ ] Session restart picks up new settings (pretool hook active, research-guide.md loads)
+Remove the `rust-overlay` input. Change `languages.rust` from version-pinned (1.92.0 via overlay) to unpinned (`enable = true` only), tracking whatever stable Rust ships with devenv-nixpkgs rolling (currently 1.91.1). The version pin was not a hard requirement — Bevy 0.18 MSRV is 1.89.0.
 
-### Step 5: Test gregarious compatibility (gregarious branch)
+Remove `rust-overlay` from `devenv.yaml`. Remove the `packageOverrides` on clippy/rustfmt hooks (those were needed to reconcile overlay vs system Rust; without the overlay, they're unnecessary). Remove the explicit `channel`, `version`, and `components` — defaults provide everything (`nixpkgs` channel, standard components including rust-analyzer via LSP).
 
-Update gregarious to point at the modified apparatus module (if the import mechanism uses a pinned ref, update it). Verify:
+### Add Python as a supported language
+
+Add `languages.python.enable = true` (tracking latest Python 3 from devenv-nixpkgs, no version pin). LSP (pyright) is enabled by default. Consumers configure uv/poetry/version as needed.
+
+### Clean up packages list
+
+Everything for a supported language should be set via `languages.*` options, not `packages`. Items in `packages` that can't go through language options get a comment explaining why.
+
+- **Remove**: `cmake`, `pkg-config`, `openssl`, `zlib`, `libssh2` (were vendored build deps for git2-sys — unnecessary, see below)
+- **Add**: `pkgs.libgit2` — the git2 crate dynamically links against system libgit2 when available. nixpkgs rolling provides 1.9.2, satisfying git2's ≥1.9.0 requirement. No vendored build needed.
+- **Keep with comment**: `cargo-llvm-cov` — "not available as a devenv language option"
+- **Keep**: `psmisc` (pstree), core utilities
+
+### Expand git-hooks
+
+The module takes responsibility for all standard hooks across both supported languages. Add:
+
+| Hook | Purpose |
+|------|---------|
+| shellcheck | Lint shell scripts |
+| ruff | Lint python |
+| ruff-format | Format python |
+
+Existing hooks (nixfmt, clippy, rustfmt) remain. All hooks get `excludes = ["^external/"]` — this is a convention, not a configuration point. Every repo uses `external/` for vendored/cloned content excluded from git and hooks.
+
+### Drop CARGO_TARGET_DIR from enterShell
+
+Each repo sets its own cargo target directory via `.cargo/config.toml` (Cargo-native mechanism). The module's enterShell no longer sets `CARGO_TARGET_DIR`. It retains only `APPARATUS_DEVENV_BIN` (used by the PreToolUse hook's `devenv-pretool.sh` to locate devenv).
+
+### Add baseline permissions to settings.json
+
+The generated `settings.json` grants: `Read`, `Write`, `WebSearch`, `WebFetch`. The PreToolUse hook handles Bash implicitly. Consumers add project-specific permissions via `apparatus.claude.allowedTools`/`deniedTools`.
+
+### Expose claude package via module option
+
+Add `apparatus.claude.package` as a read-only option (or internal value) so consumers can reference the vendored claude-code binary in their `scripts.claude` definitions without knowing the derivation path. This avoids the name collision between `scripts.claude` and the `claude` binary on PATH.
+
+### Update skill docs
+
+Update `skills/devenv/SKILL.md` and `skills/devenv/reference.md`:
+- Remove references to `claude.code.*` options (the apparatus module replaces these)
+- Document that consumers configure via `apparatus.claude.*`
+- Note that `.claude/settings.json` is generated by the apparatus module
+
+### Improve hook typing
+
+Change `apparatus.claude.extraHooks` entries from `listOf anything` to typed submodules matching the Claude Code hook schema: each entry has `matcher` (string, required) and `hooks` (list of `{ type: string, command: string }`). This catches structural errors at nix eval time rather than Claude Code runtime.
+
+## What changes in research
+
+### Import the apparatus module
+
+Add to `devenv.yaml`:
+
+```yaml
+inputs:
+  apparatus:
+    url: git+file:///work/external/apparatus?ref=apparatus-unification
+    flake: false
+imports:
+  - apparatus
+```
+
+Remove the `claude-code-overlay` input (no longer needed — module vendors it).
+
+### Replace claude.code with apparatus.claude
+
+In `devenv.nix`, remove the entire `claude.code` block. Add:
+
+```nix
+apparatus.claude.extraHooks = {
+  SessionStart = [
+    {
+      matcher = "";
+      hooks = [
+        {
+          type = "command";
+          command = "cat research-guide.md";
+        }
+      ];
+    }
+  ];
+  PostToolUse = [
+    {
+      matcher = "Write|Edit";
+      hooks = [
+        {
+          type = "command";
+          command = "pre-commit run";
+        }
+      ];
+    }
+  ];
+};
+```
+
+Remove the `claude-code-native` let-binding and the direct reference to `inputs.claude-code-overlay`. The `scripts.claude` definition should reference the module-provided package directly to avoid name collision (the module adds `claude` to PATH, but `scripts.claude` shadows it):
+
+```nix
+scripts.claude = {
+  exec = ''
+    exec "${config.apparatus.claude.package}/bin/claude" "$@"
+  '';
+};
+```
+
+This requires the module to expose the claude package via an option (e.g., `apparatus.claude.package`). See the module changes section.
+
+### Restructure external content
+
+Move cloned repos and reference material into `external/`:
+- `reference/` → `external/reference/`
+- `gregarious/` → `external/gregarious/`
+- `apparatus/` → `external/apparatus/`
+
+Update `.gitignore`: remove individual entries for `apparatus`, `gregarious`, `reference` (the existing `external` entry covers them). Update `tools/practitioner/bubble.sh` to use `APPARATUS_DIR="$DEVENV_ROOT/external/apparatus"`.
+
+### Remove DEVENV_BIN from enterShell
+
+The `DEVENV_BIN` env var was only used by the hand-copied `devenv-pretool.sh` (being deleted). The module's pretool script uses `APPARATUS_DEVENV_BIN` instead. Remove the `DEVENV_BIN` export from enterShell.
+
+### Delete stale files
+
+- `.claude/scripts/devenv-pretool.sh` (module generates this)
+- `.claude/skills/devenv/` (module generates this)
+- `.claude/settings.local.json` (111 ad-hoc permission rules accumulated through interactive use — replaced by module's baseline permissions for Read/Write/WebSearch/WebFetch and the PreToolUse hook's implicit Bash approval. Outer isolation is handled manually by the user until the module supports it in a future phase.)
+
+### Clean up devenv.nix
+
+The module now provides: coreutils, git, jq, tree, Rust toolchain, Python, claude-code binary, all git-hooks (nixfmt, clippy, rustfmt, shellcheck, ruff, ruff-format), devenv skill files, settings.json.
+
+The research `devenv.nix` retains only:
+- Research-specific packages (gh, python with pyyaml, yq-go, curl, file, gnused, gnugrep, diffutils, xxd, bubblewrap)
+- The `claude` and `practitioner` scripts (referencing module-provided claude package)
+- `apparatus.claude.extraHooks` (research-specific hooks)
+
+## What changes in gregarious
+
+### Update apparatus import
+
+In `devenv.yaml`:
+- Point `apparatus` input at `git+file:///work/external/apparatus?ref=apparatus-unification`
+- Remove `claude-code-overlay` input
+- Remove `rust-overlay` input
+- Remove `allowUnfree` (if only needed for claude-code-overlay)
+
+### Simplify devenv.nix
+
+Remove from `devenv.nix`:
+- `languages.rust` block (module provides it)
+- `languages.python` block (module provides it)
+- `git-hooks.hooks` for clippy, rustfmt, shellcheck, ruff, ruff-format (module provides them with `excludes = ["^external/"]`)
+- `CARGO_TARGET_DIR` from `enterShell`
+- `claude-code-native` let-binding and `inputs.claude-code-overlay` reference
+
+Update `scripts.claude` to reference the module-provided package (same pattern as research).
+
+Retain:
+- `git-hooks.hooks.headache` (project-specific, not in module)
+- `apparatus.claude.*` configuration (allowedTools, deniedTools, extraSettings)
+- Project-specific packages, enterShell (LD_LIBRARY_PATH, PYTHONPATH), scripts (bubble, claude)
+- `env.BUBBLE_NETWORK`
+
+### Add .cargo/config.toml
+
+Create `.cargo/config.toml`:
+```toml
+[build]
+target-dir = "../.devenv/state/gregarious/rust/target"
+```
+
+## Verification
+
+### Research (must pass)
+
 - [ ] `devenv shell` succeeds
-- [ ] The git-hooks merge works (module's clippy/rustfmt packageOverrides vs gregarious's own clippy/rustfmt)
-- [ ] `bubble echo hello` still works
-- [ ] `claude` script still launches inside bubble
+- [ ] `.claude/settings.json` contains PreToolUse hook
+- [ ] `.claude/skills/devenv/` contains module-generated files
+- [ ] `APPARATUS_DEVENV_BIN` is set in shell
+- [ ] `practitioner echo hello` works
+- [ ] Session restart loads research-guide.md and has pretool hook active
 
-### Step 6: Commit and merge
+### Gregarious (best effort)
 
-Once all three repos are stable on `apparatus-unification` branches, merge to main.
+- [ ] `devenv shell` succeeds
+- [ ] git-hooks merge cleanly (module hooks + headache)
+- [ ] `bubble echo hello` works
+- [ ] `claude` script launches inside bubble
 
-## Open questions
+## Consumer interface
 
-### 1. Import mechanism — resolved
-
-Gregarious imports apparatus via `devenv.yaml`:
+After this work, any project adopts apparatus by adding to `devenv.yaml`:
 
 ```yaml
 inputs:
   apparatus:
-    url: git+file:///work/apparatus?ref=triad
+    url: git+file:///path/to/apparatus
     flake: false
 imports:
   - apparatus
 ```
 
-The `flake: false` input points at the apparatus git repo (a specific ref). `imports: [apparatus]` tells devenv to load `devenv.nix` from that input as a module. The ref pin (`?ref=triad`) controls which version of apparatus the consumer uses.
+No other inputs required. The module provides everything.
 
-For the research repo, the same pattern applies:
-
-```yaml
-inputs:
-  apparatus:
-    url: git+file:///work/apparatus?ref=apparatus-unification
-    flake: false
-imports:
-  - apparatus
-```
-
-### 2. Input sharing — resolved
-
-Inputs do **not** propagate through `flake: false` imports. The consumer must redeclare any inputs the module references. This is a devenv/flake limitation (see devenv issue #1611). The `follows` mechanism doesn't help — it still requires listing each input name, and needs `flake: true` which requires a proper `flake.nix` that devenv doesn't generate.
-
-The principled fix is to eliminate leaked dependencies from the module interface entirely:
-
-- **`claude-code-overlay`**: Vendor into apparatus. The overlay is a thin wrapper — `package.nix` + `sources.json` (URLs and sha256 checksums per platform). Inline the derivation in the module. Consumers no longer need this input. This also eliminates the `allowUnfree` requirement that the overlay forced on consumers.
-- **`rust-overlay`**: Drop it. The version pin (1.92.0) was not a hard requirement — Bevy 0.18 MSRV is 1.89.0, devenv-nixpkgs rolling ships 1.91.1. The module uses `languages.rust.enable = true` without a version pin, tracking latest stable from nixpkgs.
-- **Python**: Same approach — `languages.python.enable = true`, tracking latest Python 3 from devenv-nixpkgs. No overlay needed.
-
-After these changes, the consumer interface is clean:
-
-```yaml
-inputs:
-  apparatus:
-    url: git+file:///work/apparatus
-    flake: false
-imports:
-  - apparatus
-```
-
-No leaked dependencies. No `allowUnfree`. No overlays.
-
-### 3. Relationship between apparatus module and devenv's `claude.code.*` — resolved
-
-Devenv provides built-in `claude.code.*` options (hooks, settings, permissions, mcpServers) as a thin opinionated wrapper. The apparatus module deliberately replaces this — it disables `claude.code` and generates `.claude/settings.json` directly via the `files` option. This is not a workaround; it's a design decision to own the full settings surface.
-
-Adopting the apparatus module means not using `claude.code.*` at all. The research repo currently uses `claude.code.hooks` for its SessionStart hook — this must be removed and replaced with `apparatus.claude.extraHooks`.
-
-**Action item:** The devenv skill's `reference.md` documents `claude.code.*` options as available, and `SKILL.md` attributes settings.json generation to `claude.code.settings`. Both should be updated to reflect that the apparatus module owns settings generation. Consumers configure via `apparatus.claude.*`, not `claude.code.*`.
-
-### 4. git-hooks ownership — resolved
-
-The apparatus module takes responsibility for both Rust and Python as the two supported implementation languages. The module provides all standard hooks for both:
-
-| Hook | Purpose | Currently in module |
-|------|---------|-------------------|
-| nixfmt | Format nix | Yes |
-| clippy | Lint rust | Yes (with packageOverrides) |
-| rustfmt | Format rust | Yes (with packageOverrides) |
-| shellcheck | Lint shell | **Add** |
-| ruff | Lint python | **Add** |
-| ruff-format | Format python | **Add** |
-
-The module must also enable `languages.python` alongside the existing `languages.rust`.
-
-**Not in module:** `headache` (license headers) stays in gregarious only — it's project-specific, not language-level.
-
-After this change, gregarious removes its own clippy/rustfmt/shellcheck/ruff/ruff-format hook definitions and relies on the module. Gregarious retains only headache.
-
-**Excludes convention:** All repos adopt `external/` as the standard directory for cloned repos, vendored code, and other content excluded from git and git-hooks. The module provides `excludes = ["^external/"]` on all hooks. No override mechanism — this is a convention, not a configuration point.
-
-- **Gregarious**: already uses `external/` for vendored libhsplasma. Remove per-hook excludes from its devenv.nix (module provides them).
-- **Research**: move `reference/`, `gregarious/`, and `apparatus/` into `external/`. Update `.gitignore` accordingly.
-- **Apparatus**: no external content currently, but the exclude is harmless.
-
-### 5. enterShell concatenation / CARGO_TARGET_DIR — resolved
-
-`CARGO_TARGET_DIR` is now set via `.cargo/config.toml` in each repo (Cargo-native mechanism) rather than enterShell env vars. This eliminates the concatenation ordering problem entirely — each repo owns its config file, no module conflict.
-
-Convention: `.cargo/config.toml` with `target-dir` pointing to `.devenv/state/<project>/target`. The module's enterShell drops the `CARGO_TARGET_DIR` line. Gregarious should adopt the same pattern.
-
-The module's enterShell retains only `APPARATUS_DEVENV_BIN` (needed by the pretool hook).
-
-### 6. CLAUDE.md and SessionStart — resolved
-
-The module does not generate CLAUDE.md — it was incorrectly listed as module-generated in earlier analysis. The `.claude/CLAUDE.md` in the apparatus repo is a regular committed file.
-
-Project-specific startup context should go through SessionStart hooks, which are composable via `extraHooks`. Each consumer adds its own. CLAUDE.md files in individual repos are a separate concern managed by the repo, not the module.
-
-### 7. Module capability gaps vs devenv `claude.code.*` — resolved
-
-The apparatus module deliberately replaces devenv's `claude.code.*`. Gap disposition:
-
-- **MCP servers**: Deliberately unsupported. MCP is context-inefficient; use SKILLS instead.
-- **Hook typing**: The module uses `listOf anything` for hook entries. Adopting typed entries (command + optional matcher) from devenv's approach would catch structural errors at eval time. **Action: improve module hook typing.**
-- **Hook merging with defaults**: Already implemented — the module's SessionStart (devenv reminder) and PreToolUse (devenv-pretool.sh) are defaults that merge with consumer `extraHooks`.
-- **Permissions**: The allowedTools/deniedTools split will evolve into an isolation profile facility in the future. Adequate for now.
-- **CLAUDE.md**: Not module-managed (see question 6). Project startup context goes through SessionStart hooks.
-
-### 8. Permissions — resolved
-
-The module's generated `settings.json` grants baseline permissions: `Read`, `Write`, `WebSearch`, `WebFetch`. The PreToolUse hook handles Bash (wraps in devenv shell, which implicitly approves it). Consumers can add project-specific permissions via `apparatus.claude.allowedTools`/`deniedTools`.
-
-Research's `settings.local.json` (111 ad-hoc rules) is deleted as part of this work. Outer isolation (bubble) is handled manually by the user until the module supports it in a future phase.
-
-## Out of scope
-
-- **Isolation unification.** Making the module aware of bubbles, the claude/shell/enter script concepts, permission templates. This is a subsequent effort.
-- **CLI implementation.** Phases 1-2 of the apparatus CLI. We return to this after merging the unification branches.
-
-## Context
-
-Conversation history prior to this plan is in `002-adopting-apparatus-in-research-space.md` (committed at `736e4f6`). The broader CLI implementation context is in `001-implementation-plan.md` and `001-implementation-notes.md`.
+After modifying `devenv.yaml` in any repo (adding/removing inputs), run `devenv update` to regenerate the lock file.
