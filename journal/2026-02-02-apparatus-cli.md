@@ -19,3 +19,10 @@ This file stays as a summary log of what happened during the day.
 ## Log
 
 - Set up journal structure for today's work.
+- Created implementation plan and notes documents (Phase 1-2 scope).
+- Set up devenv tooling: Rust 1.92.0, git-hooks with packageOverrides, build deps for git2, cargo-llvm-cov.
+- Scaffolded Rust project: substrate, model, store, commands modules. 11 tests passing.
+- Fixed git hooks compiler mismatch (system vs rust-overlay) and practitioner stale environment.
+- Branched: `cli-phase-1` in apparatus, `2026-02-02-apparatus-cli` in research repo.
+- Strategic discussion on adopting apparatus devenv module in the research space — isolation boundaries, permission models, three generalized concepts for environment entry. Recorded in `002-adopting-apparatus-in-research-space.md`.
+- **Compaction event** at commit `736e4f6`. Pre-compaction conversation recorded in `002-adopting-apparatus-in-research-space.md`. Summarization instruction: "retain context related to overall project goals, the current design work, informal working procedures and thoughts related to today's design decisions and questions, prioritize retention of strategic and abstract thinking and always include philosophical/metaphysical/self-reflection anchors. Discard troubleshooting, implementation, and tool use details." All subsequent work is with the post-compaction claude researcher.
