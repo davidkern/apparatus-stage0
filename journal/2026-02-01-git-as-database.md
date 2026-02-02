@@ -120,3 +120,105 @@ This also opens a significant design opportunity: the apparatus remote is config
 - Configurable remote for apparatus data
 - All four substrate primitives (hierarchy, CAS identity, atomic snapshots, enumeration) confirmed working
 - Hermetic instantiation via `git bundle`, atomic transactions via `git update-ref --stdin`
+
+## Design debate series
+
+With the substrate validated and the containment model selected (composition), six open question clusters remained. We ran structured adversarial debates on each, organized in dependency waves.
+
+### Wave 1: Foundational (parallel)
+
+**Mutability boundaries** — When does data freeze? Side A argued uniform freeze-on-close (terminal status = immutable, one rule for all structures). Side B argued per-structure mutability rules (each structure defines its own freeze semantics). Resolution: both sides were describing nearly the same system. The **uniform mechanism** won (terminal status means immutable, enforced once in the CLI write path), but with **per-structure lifecycles** (each structure defines its own states, transitions, and which states are terminal). Sub-objects with independent mutability get their own status. Annotations are separate objects for post-hoc metadata on frozen content. Reopening is forbidden — revision means creating a new structure referencing the old one.
+
+**Identity** — How are objects identified? This was the sharpest disagreement. Side A argued for pure content-addressed identity (SHAs, cryptographic integrity, self-verifying citations). Side B argued for assigned identity (UUIDs for logical object continuity, stable index keys). Neither side won cleanly. Resolution: a **layered hybrid** — content-addressing at the substrate for integrity and historical precision, assigned identifiers at the system layer for logical object tracking. Citations record both: `(assigned-id, content-SHA)`. The assigned ID provides durability ("what did I cite?"), the SHA provides precision ("what exactly did it contain?"). Users never see UUIDs — the CLI translates between human-readable names and internal identifiers.
+
+### Wave 2: Dependent (parallel)
+
+**Metadata model** — Is there a common metadata shape? Side A proposed a common base schema. Side B proposed per-structure schemas with validation. Resolution: **required interface contract** — every object carries five fields (`id`, `type`, `status`, `schema-version`, `created-at`), but the contract is semantic, not serialization-specific. Each structure defines its own complete schema (no inheritance). The CLI validates the contract at creation/modification time. The contract is versioned independently from structure schemas.
+
+**Granularity** — What constitutes an entry? The most consequential debate for implementation. Side A argued coarse-grained (minimize object count). Side B argued fine-grained (maximize traceability). Resolution: **fine-grained at traceability joints, coarse elsewhere**. The decisive argument: the identity synthesis designed citations as (id, SHA) pairs, which implicitly requires fine-grained objects to produce actionable staleness signals. Citing an entire investigation makes staleness noisy to the point of uselessness.
+
+Concrete decisions: journal entries are per-topic (not per-day), investigation entries are typed at the storage level (research, experiment, evidence), findings and assumptions are independent sub-objects with their own identifiers, design decisions are independent sub-objects. But artifacts stay inside parent entries — they don't participate in the reasoning chain. The standing principle for future decisions: the "citable-unit test" determines whether something becomes a first-class object.
+
+### Wave 3: Deferrable (parallel, lighter treatment)
+
+**Querying** — Side A argued for minimal querying (scan the index). Side B argued for dedicated secondary indexes. Resolution: **single index file with two sections** — a forward index (keyed by assigned-id, scanned for date/status/type queries) and a reverse-citation index (keyed by cited-id, direct lookup for assumption invalidation). Temporal and type-status indexes rejected as premature at the expected scale (hundreds to low thousands of objects). The reverse-citation structure was the one query pattern that justified dedicated structure, because transitive invalidation (multi-hop traversal of the citation graph) is the system's core traceability operation.
+
+**Versioning** — Side A argued a single version concern (per-object schema-version is sufficient). Side B argued for dual versioning (separate storage-format-version). Resolution: **three independent versioning concerns** — per-object schema-version (content evolution), metadata contract version (cross-cutting), and per-apparatus storage format version (structural conventions). The format version is stored as a plain-text blob at `refs/apparatus/meta`, read once during the CLI boot sequence. Forward compatibility: an older CLI encountering a newer format produces an actionable error rather than silently misinterpreting data.
+
+### Wave 4: Experiments — skipped
+
+No sharp disagreements required experimental resolution. All six debates reached clear architectural decisions. The experiments identified across syntheses (finding lifecycle prototyping, index performance benchmarks, meta ref boot sequence) are implementation-level validation, not architectural blockers.
+
+## CLI design document
+
+Synthesized all six debate resolutions plus both experiment results into `journal/2026-02-01-git-as-database/apparatus-cli-design.md` (5200 words). The document is a complete technical specification covering:
+
+- **Architecture**: three-layer model mapped to implementation
+- **Storage format**: `.apparatus/` layout, ref namespace, tree structure, blob format, the five contract fields
+- **Object types**: 10 types across 3 structures, each with fields, lifecycle states, sub-objects, citation fields
+- **Identity and citation model**: two-layer identity, (assigned-id, SHA) citations, staleness detection
+- **Mutability enforcement**: terminal status = immutable, implicit transitions, annotations
+- **Index specification**: two-section index (forward + reverse-citation), query patterns, rebuild mechanism
+- **Instantiation**: hermetic copies via git bundle, selective instantiation, index regeneration
+- **Sync/remote protocol**: independent apparatus remotes, full round-trip workflow
+- **Versioning strategy**: three concerns, meta ref bootstrap, CLI boot sequence, atomic migration
+- **Subcommand reference**: 16 commands with synopsis, behavior, and git plumbing used
+
+The document consolidates 16 unresolved questions from all six debates, grouped by theme and labeled as architectural or implementation-level.
+
+## Unresolved issues
+
+**Architectural** (may need future debate):
+- Assumption ownership across structures — lives in the investigation that discovered it, but lifecycle governed by design decisions that cite it
+- Historical index snapshots — how to answer "what did the citation graph look like when this decision was made?"
+- Garbage collection and object lifetime — what happens to assigned identifiers when objects are deleted?
+- Schema complexity budget — 10+ object types, each needing schema, CLI support, and lifecycle definition
+
+**Implementation-level** (resolvable during development):
+- Assigned identifier format (UUID v7 is the candidate)
+- Finding lifecycle timing (freeze with parent entry, or independently?)
+- Annotation storage mechanism (git notes vs. separate subtrees)
+- Index update atomicity (two-phase interaction between git refs and index file)
+- User-facing name resolution (how the CLI maps human names to assigned IDs)
+- Citation role typing (should citations carry semantic roles?)
+
+None are blocking. The design is firm enough to begin implementation.
+
+## Artifacts
+
+```
+journal/2026-02-01-git-as-database/
+├── ... (earlier artifacts)
+├── apparatus-cli-design.md               # CLI design document (5200 words)
+├── debates/
+│   ├── mutability-boundaries/
+│   │   ├── primer.md
+│   │   ├── side-a/position.md
+│   │   ├── side-b/position.md
+│   │   └── synthesis.md
+│   ├── identity/
+│   │   ├── primer.md
+│   │   ├── side-a/position.md
+│   │   ├── side-b/position.md
+│   │   └── synthesis.md
+│   ├── metadata-model/
+│   │   ├── primer.md
+│   │   ├── side-a/position.md
+│   │   ├── side-b/position.md
+│   │   └── synthesis.md
+│   ├── granularity/
+│   │   ├── primer.md
+│   │   ├── side-a/position.md
+│   │   ├── side-b/position.md
+│   │   └── synthesis.md
+│   ├── querying/
+│   │   ├── primer.md
+│   │   ├── side-a/position.md
+│   │   ├── side-b/position.md
+│   │   └── synthesis.md
+│   └── versioning/
+│       ├── primer.md
+│       ├── side-a/position.md
+│       ├── side-b/position.md
+│       └── synthesis.md
+```
