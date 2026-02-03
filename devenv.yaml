@@ -2,5 +2,13 @@ allowUnfree: true
 inputs:
   nixpkgs:
     url: github:cachix/devenv-nixpkgs/rolling
-  claude-code-overlay:
-    url: github:ryoppippi/claude-code-overlay
+  apparatus:
+    url: git+file:///work/apparatus?ref=apparatus-unification
+    flake: false
+  rust-overlay:
+    url: github:oxalica/rust-overlay
+    inputs:
+      nixpkgs:
+        follows: nixpkgs
+imports:
+  - apparatus
