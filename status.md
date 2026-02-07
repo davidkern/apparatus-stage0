@@ -6,10 +6,10 @@ Reconciled through: 2026-01-31
 
 ### apparatus.md fixes (from experiments 002, 003)
 
-- [ ] Add experiment validity rule: "An Experiment must be executed, not merely analyzed"
+- [x] Add experiment validity rule: "An Experiment must be executed, not merely analyzed"
 - [ ] Add reverse transition procedure (experimenting → researching)
 - [ ] Add open-question propagation procedure (investigation → parent design)
-- [ ] Fix ID assignment: max existing ID + 1, not count
+- [x] Fix ID assignment: max existing ID + 1, not count
 
 ### apparatus.md refinements (from experiment 003)
 
@@ -35,6 +35,16 @@ Reconciled through: 2026-01-31
 - [ ] Rethink confidence scale for non-experimental investigations
 - [ ] Cross-investigation coordination mechanism
 - [ ] Proportionality note in apparatus.md
+
+### Shell design
+
+Design document editorially complete. Waiting on technical validation:
+
+- [ ] Experiment 10: Namespace/fork ordering for startup flow
+- [ ] Experiment 11: Environment root remapping (FUSE vs pivot_root vs overlayfs)
+- [ ] Resolve inline notes (hook strategy, observation modes, protocol framing)
+
+Implementation plan extracted to `journal/2026-02-06-shell-design-editing/implementation-plan.md`. Milestones M0-M6 scoped, blocked on experiments above.
 
 ## Current landscape
 
