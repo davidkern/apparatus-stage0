@@ -82,6 +82,53 @@ The implementation plan is an informal document living in the research journal,
 not a formal apparatus artifact. It will be refined and fed back into the
 apparatus repo after experiments 10-11 resolve the blocking technical questions.
 
+## Mode transition research question
+
+Discussion after reconciliation surfaced a potential research direction.
+
+### The pattern observed
+
+Three ad-hoc experiments involved shifting practitioners from formal work
+to informal reflection:
+
+1. After an especially productive design session (2026-02-05)
+2. After a frustrating session with context loss
+3. With the shell design editor who needed strategic context
+
+In each case, even a minimal intervention — suggesting a task shift without
+revealing the full research project — produced valuable meta-observations
+about the formal process itself.
+
+### The asymmetry hypothesis
+
+The tension between formal and informal methods may be load-bearing, not
+something to resolve. Formal mode builds pressure (context, decisions,
+friction). Informal mode releases it productively. The transition is where
+generative reflection happens.
+
+This explains why practitioners can observe their own failure modes but
+can't self-correct in the moment. The mode shift enables the self-awareness
+to become articulable.
+
+### Work type matters
+
+Retrospectives after mechanical/implementation work produce task-focused
+reflections ("could have done X more efficiently"). Retrospectives after
+design/decision work produce meta-observations about the process itself.
+
+The type of cognitive work determines what kind of pressure builds, and
+therefore what kind of reflection the mode shift surfaces.
+
+### Open questions
+
+- Is context accumulation sufficient, or does work type matter independently?
+- What's the minimum effective intervention size?
+- Is there an optimal timing? (After milestones? After frustration? Random?)
+- Should the apparatus have explicit "reflection gates"?
+
+Recorded in status as a candidate for controlled investigation once the
+shell provides isolation.
+
 ## References
 
 - Design document: `apparatus/designs/shell/index.md`

@@ -54,6 +54,17 @@ First implementation started on `cli-phase-1` branch (2026-02-02). Blocked after
 - [ ] Cross-investigation coordination mechanism
 - [ ] Proportionality note in apparatus.md
 
+### Open research questions
+
+**Formal→informal mode transitions**: Ad-hoc experiments showed that shifting practitioners from formal work to informal reflection (journal access, research guide) produces valuable meta-observations about the process itself. Open questions:
+
+- Is this preconditioned on work type? Design/decision work seems to produce richer reflection than implementation/mechanical work.
+- What triggers the productive transition? Observed after: productive sessions, frustrating sessions, strategic need. Unknown if timing matters or just context accumulation.
+- What's the minimum intervention? Task shift suggestion alone seemed sufficient; full research access wasn't required.
+- Should the apparatus have explicit "reflection gates"?
+
+Candidates for controlled investigation once the shell provides isolation.
+
 ### Shell design
 
 Design document editorially complete. Waiting on technical validation:
