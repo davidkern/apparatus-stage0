@@ -1,6 +1,6 @@
 # Status
 
-Reconciliation Procedure last run: 2026-01-31
+Reconciliation Procedure last run: 2026-02-06
 
 ## Work queue
 
@@ -18,19 +18,37 @@ Reconciliation Procedure last run: 2026-01-31
 - [ ] Anchor evidence ref paths to a defined root
 - [ ] Clarify open-questions shape difference between Investigation and Design
 
+### apparatus.md refinements (from retrospectives)
+
+- [ ] Investigation criteria should describe completeness of coverage, not specific outcomes (retro 001)
+- [ ] Consider `complete` as terminal experiment status; record hypothesis outcome separately (retros 001, 002)
+- [ ] Recommend splitting compound hypotheses into independently testable sub-claims (retro 001)
+- [ ] Acknowledge experiment iteration in procedure: intermediate findings are often as valuable as final result (retro 001)
+- [ ] Add guidance for experiments with dependencies: "Setup findings" vs "Evaluation findings" subsections (retro 002)
+- [ ] Add reproducibility guidance for experiments with external dependencies (retro 002)
+- [ ] Define implementation plan as artifact type — currently a gap (retro 003)
+- [ ] Clarify design lifecycle: "editorially complete" vs "technically complete" vs "ready for implementation" (retro 003)
+
 ### Tooling
 
 - [ ] Build runner that enforces review gates structurally (terminates session at `review`, resumes after external status change)
 - [ ] Add PostToolUse hook (pre-commit) to apparatus devenv module
 - [ ] Properly configure research repo devenv hooks (currently stripped to SessionStart only)
 
+### CLI implementation
+
+First implementation started on `cli-phase-1` branch (2026-02-02). Blocked after compaction event caused quality degradation. Devenv module adapted for research space integration.
+
+- [ ] Resume CLI implementation from phase 1 scaffold
+- [ ] Validate CLI design against implementation friction
+
 ### Research
 
 - [ ] Link gregarious repo into workspace for reference on skill-based API pattern
 - [ ] Validate three-component architecture (smallest proving slice against gate enforcement problem from 003)
-- [ ] Integrate cross-perspective synthesis into project foundations — see `journal/2026-01-31-module-reusability-and-process/cross-perspective-synthesis.md`. Covers: document revisions (autonomy ceiling, exit criteria, spectrum framing), design constraints (temporal decomposition, permeability, formality gradient), and open problems (circular evaluation, exit velocity, novelty preservation).
+- [ ] Integrate cross-perspective synthesis into project foundations — see `journal/2026-01-31-module-reusability-and-process/cross-perspective-synthesis.md`
 
-### Needs more data (carried forward from experiments)
+### Needs more data (carried forward)
 
 - [ ] Rethink confidence scale for non-experimental investigations
 - [ ] Cross-investigation coordination mechanism
@@ -53,7 +71,32 @@ Implementation plan extracted to `journal/2026-02-06-shell-design-editing/implem
 
 ## Current landscape
 
-### Architecture
+### Storage architecture (decided 2026-02-01)
+
+Git is the storage substrate. Key decisions from the git-as-database design session:
+
+**Physical layout:**
+- `.apparatus/` — separate bare git repo alongside project's `.git/`
+- Complete bidirectional isolation from project git (no IDE visibility issues)
+- Configurable apparatus remote independent of code remote
+
+**Three-layer architecture:**
+1. **Substrate layer** — four primitives: hierarchy, CAS identity, atomic snapshots, enumeration
+2. **Structure layer** — domain semantics (journal, investigation, design)
+3. **System layer** — cross-structure orchestration
+
+**Identity model:**
+- Two-layer identity: content-addressing at substrate (SHAs), assigned identifiers at system layer (UUIDs)
+- Citations record both: `(assigned-id, content-SHA)` — assigned ID for durability, SHA for precision
+- Staleness detection via stored ref SHA at index-build time (from git-annex prior art)
+
+**Object types:** 10 types across 3 structures, each with lifecycle states and sub-objects. Fine-grained at traceability joints (findings, assumptions, decisions are independent sub-objects), coarse elsewhere (artifacts stay inside parent entries).
+
+**Index:** Single file with forward index (keyed by assigned-id) and reverse-citation index (keyed by cited-id for assumption invalidation).
+
+Full specification: `journal/2026-02-01-git-as-database/apparatus-cli-design.md`
+
+### Runner architecture
 
 The apparatus has a three-component architecture, established after experiment 003:
 
@@ -66,6 +109,18 @@ Design principles:
 - Git is a database, not an API. Skills provide the real-time interface.
 - Control plane grows based on evidence. A behavior moves from agent-managed to runner-managed when experiments show the agent cannot self-regulate it.
 - Prevention over detection. Runs are expensive; don't let the agent do something wrong and catch it after.
+
+### Prior art findings (2026-02-01)
+
+Surveyed 12 tools using git or git-like CAS for structured data. Key findings affecting apparatus design:
+
+1. **Canonical serialization is non-negotiable.** YAML doesn't fit any strategy. JSON with sorted keys is the candidate.
+2. **Separate store validated.** Jujutsu's `.jj/repo/store/git/` independently validates the apparatus approach.
+3. **Commit trailers for operational metadata.** Gerrit uses 29 structured footer keys. Apparatus should use trailers for audit trail.
+4. **git notes for annotations on frozen objects.** Resolves lifecycle contradiction without affecting annotated object SHAs.
+5. **Two-layer identity is universal.** Jujutsu, Gerrit, apparatus all independently arrived at assigned-id + content-SHA.
+
+Tools examined: git-bug, git-annex, git-appraise, Gerrit NoteDb, Jujutsu, DVC, git-dit, Dolt, Noms, Fossil, GitDocumentDB, lakeFS.
 
 ### Bootstrap assumptions
 
@@ -114,3 +169,17 @@ Shell design work revealed two practitioner modes:
 2. **Directive practitioner**: Receives specific editorial guidance, works collaboratively. Used for complex technical work.
 
 Both are valid. The apparatus process manages knowledge and decisions; it doesn't specify how every line gets written. Complex technical work may require directive mode while still producing apparatus-compatible artifacts (decisions, investigations, retrospectives).
+
+### Practitioner techniques (from retrospectives)
+
+Effective patterns discovered during directive practitioner work:
+
+- **Staged reading**: Read document in phases to capture honest first impressions before seeing how later sections resolve gaps.
+- **Scratch pad files**: External gitignored file for tracking terminology decisions, content moves, accumulated guidelines. Maintains session continuity without polluting the design document.
+- **Parallel drafting**: While researcher reviews one section, practitioner drafts independent sections in parallel.
+- **Goal connections**: Adding "this section serves goals X, Y" at top of each section creates consistency and scannability.
+- **Name the anti-pattern**: Identifying that a section is "overview that defers" makes the solution (dissolve into peer sections) obvious.
+
+### Compaction quality (2026-02-02)
+
+Explicit compaction instructions ("retain strategic thinking, discard troubleshooting") produced worse results than defaults. The post-compaction agent stopped proactive collaboration and made significant errors. Reverted to default summarization. Worth investigating whether this is reproducible or session-specific.
