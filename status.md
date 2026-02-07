@@ -1,6 +1,6 @@
 # Status
 
-Reconciled through: 2026-01-31
+Reconciliation Procedure last run: 2026-01-31
 
 ## Work queue
 
@@ -46,6 +46,11 @@ Design document editorially complete. Waiting on technical validation:
 
 Implementation plan extracted to `journal/2026-02-06-shell-design-editing/implementation-plan.md`. Milestones M0-M6 scoped, blocked on experiments above.
 
+### Repository hygiene (deferred)
+
+- [ ] Apparatus repo history rewrite after shell provides isolation
+- [ ] Review 47 commits on `shell-design-round-2` before merge to main
+
 ## Current landscape
 
 ### Architecture
@@ -85,3 +90,27 @@ Two assumptions invalidated by experiments (now historical, recorded in journal)
 ### Skill triggering
 
 Claude has a tendency to change strategy rather than load a skill when encountering a missing command. Hypothesis: strong negative bias in the model's cost function for tool-loading vs. pivoting. SessionStart hook is a partial workaround (puts nix-shell hint in context early). The deeper problem (reliable skill triggering for ephemeral usage) is deferred.
+
+### Crosstalk and confinement
+
+The apparatus and research repos share an unconfined workspace. Agents can read/write anywhere. During the shell design work, this was exploited rather than fought:
+
+- Practitioners wrote retrospectives in `apparatus/retrospectives/`
+- Practitioners read `research-guide.md` and adopted its norms
+- Some practitioners explored research journals, observing their own ancestry
+
+This produced informal observations (not controlled experiments):
+- Practitioners who see retrospectives produce better retrospectives
+- Practitioners who read the research guide adopt its terminology
+- Meta-awareness may improve output quality
+
+The apparatus repo history is contaminated by this crosstalk. A history rewrite will be needed once the shell provides real isolation.
+
+### Practitioner modes
+
+Shell design work revealed two practitioner modes:
+
+1. **Confined practitioner**: Follows apparatus.md, records friction. Used for stage 0 experiments.
+2. **Directive practitioner**: Receives specific editorial guidance, works collaboratively. Used for complex technical work.
+
+Both are valid. The apparatus process manages knowledge and decisions; it doesn't specify how every line gets written. Complex technical work may require directive mode while still producing apparatus-compatible artifacts (decisions, investigations, retrospectives).

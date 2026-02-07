@@ -27,9 +27,21 @@ The research environment has five facilities. Each has a temporal orientation an
 - **Work queue**: Concrete actionable items as checkboxes. Each item is something a researcher can pick up and do.
 - **Current landscape**: Architecture, assumptions, tensions, open questions. The shape of the problem space as currently understood.
 
-The file carries a single **"Reconciled through"** date at the top. This is the date through which all journal entries have been incorporated. To reconcile: read all journal entries after the reconciliation date, update both sections to reflect the current state, advance the date. Delete completed items. Remove stale assumptions. Add new items.
+The file carries a **"Reconciliation Procedure last run"** date at the top. This is the date through which all journal entries have been incorporated into status.
 
 Status is a derived view of the journal. If status and journal conflict, the journal is authoritative. Status exists for quick orientation; the journal holds the reasoning.
+
+#### Reconciliation Procedure
+
+To run the reconciliation procedure:
+
+1. Note the current "last run" date in status.md.
+2. Read every journal entry dated after that date.
+3. Update the work queue: add new items, check off completed items, delete stale items.
+4. Update the landscape: add new findings, remove invalidated assumptions, revise architecture descriptions.
+5. Advance the "last run" date to today.
+
+Do not advance the date without completing steps 1-4.
 
 ### Journal
 
@@ -116,7 +128,7 @@ The branch now has two commits: conditions and results. Inspect via `git diff ma
 Create `experiments/<experiment-name>/` with `log.md` and `evaluation.md` (described above). Commit in the research repo.
 
 **6. Update status and journal.**
-Record findings in the journal. Update `status.md`: add new work queue items, update the landscape, advance the reconciliation date.
+Record findings in the journal. Update `status.md`: add new work queue items, update the landscape. (Do not advance the reconciliation date — that requires running the full Reconciliation Procedure.)
 
 ### What we look for in results
 
