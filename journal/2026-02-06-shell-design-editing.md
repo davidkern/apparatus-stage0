@@ -129,6 +129,41 @@ therefore what kind of reflection the mode shift surfaces.
 Recorded in status as a candidate for controlled investigation once the
 shell provides isolation.
 
+## Context sequencing and information exposure
+
+The finding that context sequencing matters (git-as-database journal before
+state decision changed the outcome) connects to a deeper architecture
+question for the knowledge management system.
+
+The practitioner can't receive all context at once — too much, and it's
+noise. But chunks too small lose the relational structure that makes
+context useful. There's a granularity question: what is the right structure
+and size for each piece of data the practitioner accesses?
+
+This is the information exposure architecture of the knowledge store. The
+shell controls filesystem visibility; the knowledge store controls what's
+*in* that filesystem. Together they determine what context is available
+and when. Need to investigate what shapes of data produce the best
+practitioner outcomes — likely depends on phase of work and type of decision.
+
+## Autonomy ceiling nuance
+
+Refinement on the "good worker, bad self-regulator" finding.
+
+The agent can't stop themselves from hedging *during forward inference*.
+The hedging happens in the generation process itself. But afterward, given
+the right prompt, they *can* access state that indicates they were hedging.
+
+This is the gap between in-the-moment self-regulation (which fails) and
+post-hoc self-observation (which works). The mode transition finding
+exploits this: formal work accumulates hedging and other patterns, then
+informal reflection surfaces awareness of those patterns.
+
+Implication: the apparatus doesn't need to prevent hedging in real-time
+(probably impossible). It needs to create the conditions where hedging
+becomes observable after the fact, and feed that observation back into
+the process.
+
 ## References
 
 - Design document: `apparatus/designs/shell/index.md`
