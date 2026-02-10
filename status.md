@@ -69,11 +69,50 @@ Candidates for controlled investigation once the shell provides isolation.
 
 Design document editorially complete. Waiting on technical validation:
 
-- [ ] Experiment 10: Namespace/fork ordering for startup flow
-- [ ] Experiment 11: Environment root remapping (FUSE vs pivot_root vs overlayfs)
+- [x] Experiment 10: Namespace/fork ordering for startup flow
+- [x] Experiment 11: Environment root remapping (FUSE vs pivot_root vs overlayfs)
 - [ ] Resolve inline notes (hook strategy, observation modes, protocol framing)
 
-Implementation plan extracted to `journal/2026-02-06-shell-design-editing/implementation-plan.md`. Milestones M0-M6 scoped, blocked on experiments above.
+Implementation plan extracted to `journal/2026-02-06-shell-design-editing/implementation-plan.md`. Milestones M0-M6 scoped.
+
+### Journaling (post-shell, pre-git)
+
+Add journaling capability to apparatus CLI before the full git storage work.
+Use the same filesystem structure we've been maintaining manually (`journal/YYYY-MM-DD-topic.md` with optional companion directories). This introduces journaling for apparatus users and removes the manual burden in the research space.
+
+- [ ] Design journal entry creation (date, topic, companion directory)
+- [ ] Design journal listing/navigation
+- [ ] Consider whether reconciliation procedure can be partially supported
+- [ ] Implement using filesystem directly (no git dependency yet)
+
+Deferred to git phase: cross-references, assumption tracking, formal artifact linking.
+
+### Presently / Knowledge representation
+
+Presentation layer design led to broader knowledge representation research. See
+`journal/2026-02-09-semantic-presentation.md`.
+
+- [x] Complete auditory forms research (010-012) — naive→synthesis pattern validated
+- [ ] Use completed hierarchy model to finalize presently design scope
+- [ ] Implement minimal presently forms needed for shell output
+- [ ] Consider whether hierarchy model informs apparatus storage format design
+
+Investigation complete at `/work/apparatus/investigations/semantic-presentation/`.
+Design in progress at `/work/apparatus/designs/presently/`.
+Crate at `/work/apparatus/crates/presently/`.
+
+Key finding from 012: Classical rhetoric had compositional vocabulary (Quintilian's
+delivery patterns, oral-formulaic type-scenes) that modern synthesis systems lack.
+The "missing layer" is Layer 3 (Utterance Form) — where semantic intent first
+determines prosodic treatment.
+
+**Validated research technique (naive→synthesis):** Exploratory research that
+produces unsatisfying inventories is a precondition for synthesis research that
+produces coherent hierarchies. The 007-009 sequence (typographic) and 010-012
+sequence (auditory) both followed this pattern. The naive phases define what
+"success" means by demonstrating what fails; synthesis prompts can then specify
+"not like X" with X compressed into fuzzy intention. This is now a reproducible
+technique for hierarchicalization problems.
 
 ### Repository hygiene (deferred)
 
