@@ -64,7 +64,7 @@ Create `_notes.md` in the source directory listing:
 ## Consistency Check
 
 Verify across all recipes:
-- Location references use consistent format (per `_meta.md`)
+- Location references use consistent format (per `_context.md`)
 - Slugs follow naming convention (lowercase-kebab)
 - Direction field is appropriate (not defaulting without consideration)
 - Extensions use consistent key names for similar patterns

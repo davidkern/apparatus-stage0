@@ -317,9 +317,7 @@ def validate_directory(directory: Path) -> list[ValidationError]:
         for f in md_files
         if f.name not in ("SCHEMA.md", "README.md")
         and "/_tools/" not in str(f)
-        and not f.name.startswith(
-            "_"
-        )  # Skip system files (_context.md, _meta.md, etc.)
+        and not f.name.startswith("_")  # Skip system files (_context.md, etc.)
     ]
 
     if not md_files:

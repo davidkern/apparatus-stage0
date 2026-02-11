@@ -5,15 +5,15 @@ source. It produces `_prompt/extract.md` files for each chunk directory.
 
 ## Prerequisites
 
-- Source directory exists with `_meta.md` and `_context.md`
-- `_meta.md` contains chunk inventory with paths
+- Source directory exists with `_context.md` (contains metadata and extraction guidance)
+- `_context.md` contains chunk inventory with paths
 - General `_context.md` at recipes root
 - `_procedures/extract-recipes.md` as the extraction procedure template
 - SCHEMA.md defining the recipe format
 
 ## Task
 
-For each chunk listed in the source's `_meta.md`:
+For each chunk listed in the source's `_context.md`:
 
 1. Create the chunk directory if it doesn't exist
 2. Create `_prompt/` subdirectory
@@ -22,7 +22,7 @@ For each chunk listed in the source's `_meta.md`:
    - Context from recipes root (`_context.md`)
    - Context from source level (`<source>/_context.md`)
    - Context from chunk level (`<source>/<chunk>/_context.md`) if it exists
-   - Parameters from `_meta.md` (PDF path, chunk content description)
+   - Parameters from `_context.md` (PDF path, chunk content description)
 
 ## Integration Rules
 
@@ -72,7 +72,7 @@ Each `extract.md` should contain:
 
 - **PDF**: <absolute path to chunk PDF>
 - **Content**: <description of what this chunk covers>
-- **Reference system**: <how to cite locations, from source _meta.md>
+- **Reference system**: <how to cite locations, from source _context.md>
 
 ## Output
 
