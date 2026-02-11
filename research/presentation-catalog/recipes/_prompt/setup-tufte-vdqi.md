@@ -1,6 +1,6 @@
-# Setup Source: Aristotle's Rhetoric
+# Setup Source: Tufte's Visual Display of Quantitative Information
 
-Instantiated prompt for setting up aristotle-rhetoric source.
+Instantiated prompt for setting up tufte-vdqi source.
 
 ---
 
@@ -12,11 +12,11 @@ Read for guidance: `/work/apparatus-research/research/presentation-catalog/recip
 
 ## Parameters
 
-- **Source material**: `/work/apparatus-research/reference/aristotle/chunks/`
-- **Work**: Aristotle's "Rhetoric" (also called "On Rhetoric")
-- **Author**: Aristotle
-- **Translation**: George A. Kennedy (Oxford University Press, 2007)
-- **Output directory**: `/work/apparatus-research/research/presentation-catalog/recipes/aristotle-rhetoric/`
+- **Source material**: `/work/apparatus-research/reference/tufte/visual-display-quantitative/`
+- **Work**: The Visual Display of Quantitative Information
+- **Author**: Edward R. Tufte
+- **Edition**: 2nd Edition (2001)
+- **Output directory**: `/work/apparatus-research/research/presentation-catalog/recipes/tufte-vdqi/`
 
 ## References
 
@@ -30,8 +30,8 @@ Read for guidance: `/work/apparatus-research/research/presentation-catalog/recip
 2. **Create** source directory with `_context.md` containing:
    - Work information
    - Chunk inventory (files found, content coverage)
-   - Reference system (Bekker numbers)
-   - Terminology guidance
+   - Reference system
+   - Key concepts and terminology
    - Extraction hints
 3. **Decide** what next step is appropriate based on what you find
 4. **Stage** the next step by creating appropriate `_prompt/` files
