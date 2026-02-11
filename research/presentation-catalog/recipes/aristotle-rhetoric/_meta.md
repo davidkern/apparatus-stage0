@@ -65,3 +65,15 @@ Kennedy provides extensive scholarly footnotes that often:
 - Provide historical context for examples
 
 These footnotes are valuable for understanding nuance and should inform extraction.
+
+## Schema Development
+
+The recipe schema was refined based on observations from an initial extraction
+pass (252 recipes, 12 files). Independent convergence across parallel tasks:
+
+- **Bidirectionality** (6+ files noted this) → Added `direction` field with default guidance
+- **Audience sensitivity** (4+ files) → Added `audience` field
+- **Examples essential** (3+ files) → Body structure emphasizes examples
+- **Warnings/limitations** (2+ files) → Added `warnings` field
+
+These observations are incorporated into SCHEMA.md and `_context.md`.

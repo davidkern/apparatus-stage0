@@ -97,10 +97,15 @@ These provide `audience` context rather than standalone techniques.
 
 ### Direction Assignment
 
-Most Rhetoric techniques are bidirectional (`direction: both`):
+**Default to `direction: both`** unless clearly one-way. This was the strongest
+convergent finding from independent extraction trials (6+ parallel tasks noted it).
+
+Most Rhetoric techniques are bidirectional:
 - Aristotle explicitly teaches both "how to" and "how to recognize"
 - The fallacious topics are primarily `recognition`
 - Emotional frameworks can be used to arouse OR to detect manipulation
+
+When uncertain, `both` is almost always correct for Aristotelian techniques.
 
 ### Components vs. Parameters
 
@@ -156,15 +161,25 @@ Use the `extensions` field for Aristotle-specific patterns:
 
 ```yaml
 extensions:
-  aristotle_topic_number: 1        # For the 28 topics
-  emotion_triad:                    # For emotion frameworks
-    disposition: ...
-    objects: ...
-    occasions: ...
-  fallacious_form:                  # For techniques with invalid variants
-    name: ...
-    description: ...
+  # For the 28 topics (Chapter 23)
+  aristotle_topic_number: 1
+
+  # For emotion frameworks (Chapters 2-11)
+  emotion_triad:
+    disposition: "state that makes one prone to feel it"
+    objects: "toward whom/what"
+    occasions: "triggering circumstances"
+
+  # For fallacious enthymemes (Chapter 24)
+  fallacious: true
+  fallacy_type: "false cause"  # brief description
+
+  # For character types (Chapters 12-17) - these are audience profiles, not techniques
+  recipe_type: audience-adaptation
 ```
+
+The `fallacious: true` flag marks recipes that are recognition-oriented patterns
+of invalid reasoning. Use `warnings` to explain how they deceive.
 
 ## Scholarly Context
 
