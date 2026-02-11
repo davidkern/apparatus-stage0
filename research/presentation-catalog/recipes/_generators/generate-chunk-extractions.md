@@ -2,6 +2,17 @@
 
 Creates chunk subdirectories and stages extraction prompts for each.
 
+## When to Use
+
+Use this generator for **primarily textual sources** where:
+- The core content is conveyed through prose
+- Visual elements (if any) are supplementary, not essential
+- Text extraction captures the techniques being described
+
+For sources where visual content is essential to understanding (diagrams, charts,
+figures that demonstrate rather than merely illustrate), use
+`generate-multimodal-chunk-extractions.md` instead.
+
 ## Responsibility
 
 Single responsibility: Create chunk-level structure and stage extraction prompts.
