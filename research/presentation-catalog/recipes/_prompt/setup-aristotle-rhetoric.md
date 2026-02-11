@@ -2,8 +2,6 @@
 
 Prompt used to generate `aristotle-rhetoric/` structure via `setup-source` procedure.
 
-**Generated**: 2026-02-11
-
 ---
 
 You are setting up a new source for recipe extraction.
@@ -36,9 +34,6 @@ Create the source structure at: `/work/apparatus-research/research/presentation-
 1. Read the setup-source procedure
 2. List the PDF chunks to understand what's available
 3. Examine a sample of the source material (read one or two PDF chunks) to understand the content, reference system, and terminology
-4. Create `_meta.md` with chunk inventory and reference system
-5. Create `_context.md` with source-specific extraction guidance
-6. Create empty `_prompt/` directory
-7. Report what you created
-
-Do NOT look at `_stash/` — that contains a comparison version we'll use later.
+4. Create `_context.md` with source metadata and extraction guidance
+5. Create empty `_prompt/` directory
+6. Report what you created

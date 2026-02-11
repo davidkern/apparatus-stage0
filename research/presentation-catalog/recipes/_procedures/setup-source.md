@@ -16,8 +16,7 @@ Create the initial directory structure and authored files for a new source:
 
 ```
 <source>/
-├── _meta.md      # Source parameters
-├── _context.md   # Source-specific extraction guidance
+├── _context.md   # Source metadata and extraction guidance
 └── _prompt/      # Empty, ready for generated prompts
 ```
 
@@ -29,54 +28,62 @@ mkdir -p recipes/<source>/_prompt
 
 Use a descriptive source identifier: `aristotle-rhetoric`, `tufte-vdqi`, `quintilian-institutio`.
 
-## Step 2: Create `_meta.md`
+## Step 2: Create `_context.md`
 
-Examine the source material and document:
+This single file contains both source metadata (reference data) and extraction
+guidance (how to extract recipes from this source).
 
 ### Work Information
+
+Document the source:
 - Title, author, translation/edition
 - Total size (pages, chapters)
+- Overall structure (major divisions)
 
 ### Chunk Inventory
+
 List all chunks with:
 - Chunk identifier (used as directory name)
 - Content coverage (chapters, sections, page ranges)
 - File path (relative to repository root)
 
-Format as a table for clarity.
+Format as a table for easy reference.
 
 ### Reference System
+
 Document how locations are cited in this source:
 - Page numbers? Section numbers? Line numbers?
 - Standard scholarly reference system (e.g., Bekker numbers, Stephanus pages)?
-- Format examples
-
-## Step 3: Create `_context.md`
-
-Examine the source material (read introduction, sample chapters, table of contents)
-and document guidance specific to this source:
-
-### Source Structure
-- How is the work organized?
-- What are the major divisions?
-- What content appears where?
+- Format examples with YAML showing how `source.location` should look
 
 ### Terminology
+
 - Does the source use technical terms that need consistent handling?
-- Original language terms to preserve?
+- Original language terms to preserve (use `source.original_term`)?
 - Translation conventions to note?
 
-### Source-Specific Patterns
+### Source Structure
+
+- How is the work organized?
+- What are the major divisions and what content appears where?
 - What kinds of content will be extracted? (techniques, patterns, principles)
-- Are there recurring structures? (e.g., triads, catalogs, examples)
-- Any content types that need special handling?
 
 ### Extraction Hints
-- What should extractors pay attention to?
-- What might be confusing or easily missed?
-- Any known conventions from the scholarly tradition?
 
-## Step 4: Incorporate Prior Knowledge
+- What should extractors pay attention to?
+- What patterns recur that need consistent handling?
+- Direction guidance (default to `both`? recognition-only sections?)
+- Components vs. parameters guidance
+- How to handle examples from the source
+
+### Extensions
+
+Document any source-specific patterns that should use the `extensions` field:
+- Numbered items (e.g., Aristotle's 28 topics)
+- Recurring structures (e.g., emotion triads)
+- Content type markers (e.g., fallacious patterns, audience-adaptation)
+
+## Step 3: Incorporate Prior Knowledge
 
 If this source type has been extracted before (e.g., another rhetoric text),
 incorporate relevant learnings:
@@ -87,14 +94,13 @@ incorporate relevant learnings:
 
 This is authored knowledge, not mechanical copying. Adapt to the specific source.
 
-## Step 5: Verify Structure
+## Step 4: Verify Structure
 
 Confirm:
-- [ ] `_meta.md` has complete chunk inventory
-- [ ] `_meta.md` documents reference system with examples
+- [ ] `_context.md` has complete chunk inventory with correct paths
+- [ ] `_context.md` documents reference system with YAML examples
 - [ ] `_context.md` provides actionable extraction guidance
 - [ ] `_prompt/` directory exists (empty)
-- [ ] Paths in `_meta.md` are correct and files exist
 
 ## Output
 
@@ -102,7 +108,6 @@ A source directory ready for extraction prompt generation:
 
 ```
 <source>/
-├── _meta.md      # Complete
 ├── _context.md   # Complete
 └── _prompt/      # Empty
 ```

@@ -1,6 +1,6 @@
-# Setup Source — Seed Prompt Template
+# Setup Source — Prompt Template
 
-This is the prompt template for running the setup-source procedure on a new source.
+Template for creating prompts that run the setup-source procedure.
 Replace `<placeholders>` with actual values.
 
 ---
@@ -33,21 +33,8 @@ Create the source structure at: `/work/apparatus-research/research/presentation-
 ## Instructions
 
 1. Read the setup-source procedure
-2. List the PDF/source chunks to understand what's available
+2. List the PDF chunks to understand what's available
 3. Examine a sample of the source material (read one or two chunks) to understand the content, reference system, and terminology
-4. Create `_meta.md` with chunk inventory and reference system
-5. Create `_context.md` with source-specific extraction guidance
-6. Create empty `_prompt/` directory
-7. Report what you created
-
----
-
-## Example Instantiation (Aristotle)
-
-```
-- SOURCE_DESCRIPTION: Aristotle's Rhetoric
-- PATH_TO_CHUNKS: /work/apparatus-research/reference/aristotle/chunks/
-- WORK_TITLE: Aristotle's "Rhetoric" (also called "On Rhetoric")
-- AUTHOR_AND_TRANSLATION_INFO: George A. Kennedy (Oxford University Press, 2007)
-- SOURCE_ID: aristotle-rhetoric
-```
+4. Create `_context.md` with source metadata and extraction guidance
+5. Create empty `_prompt/` directory
+6. Report what you created

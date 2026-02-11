@@ -174,15 +174,17 @@ recipes/
 ├── SCHEMA.md                    # Frontmatter schema definition
 ├── _generator-prompt.md         # How to generate prompts from procedures + context
 ├── _procedures/                 # Reusable procedure templates
+│   ├── setup-source.md
 │   ├── generate-chunk-extractions.md
 │   ├── extract-recipes.md
 │   └── consolidate-source.md
-├── _context.md                  # General extraction context (content)
+├── _context.md                  # General extraction context
+├── _prompt/                     # Generated prompts for recipes-level tasks
+│   └── <task>.md
 ├── _tools/
 │   └── validate.py              # Schema validator
 └── <source>/
-    ├── _meta.md                 # Source parameters (chunks, paths, refs)
-    ├── _context.md              # Source-specific extraction guidance
+    ├── _context.md              # Source metadata and extraction guidance
     ├── _prompt/                 # Generated prompts for source-level tasks
     │   └── <task>.md
     └── <chunk>/
@@ -195,9 +197,8 @@ recipes/
 ### Key Concepts
 
 - **`_procedures/`** — Reusable templates (how to do something, source-agnostic)
-- **`_context.md`** — Content guidance (what to include, at each level)
-- **`_meta.md`** — Structured parameters (chunks, paths, reference systems)
-- **`_prompt/<task>.md`** — Concrete prompts (procedure + context + parameters)
+- **`_context.md`** — Metadata and guidance (at each level, combines reference data and prose)
+- **`_prompt/<task>.md`** — Concrete prompts (procedure + integrated context)
 
 See the top-level `presentation-catalog/README.md` for the full model.
 
