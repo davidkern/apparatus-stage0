@@ -1,6 +1,7 @@
 ---
 source: accessibility
 proposed-category: Cognitive-Support
+proposed-group: Grouping and Labeling
 name: Control-Group
 ---
 

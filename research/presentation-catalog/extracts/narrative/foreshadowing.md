@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Engagement and Suspense
 name: Foreshadowing
 ---
 
@@ -24,5 +25,3 @@ creating coherence and retrospective satisfaction.
 rather than explicit. Foreshadowing doesn't announce itself.
 
 ---
-
-## Temporal Intents: Narrative Time

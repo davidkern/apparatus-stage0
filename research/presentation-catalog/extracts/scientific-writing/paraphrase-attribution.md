@@ -27,18 +27,3 @@ content is the primary focus, not the exact source words.
 - *Visual*: N/A (paraphrase is textual)
 
 ---
-
-## Summary: Proposed New Categories
-
-Based on scientific writing conventions and data presentation practices, the
-following new categories are warranted:
-
-| Category | What it communicates | Distinct from existing? |
-|----------|---------------------|------------------------|
-| **Quantification** | Measured values with precision/uncertainty | Yes—specific notation systems |
-| **Statistical-Claim** | Inferential findings with formal tests | Yes—standardized reporting |
-| **Evidence-Grading** | Quality/strength of supporting evidence | Extends Evidential |
-| **Epistemic-Hedging** | Calibrated certainty in claims | Yes—linguistic modulation |
-| **Methodology-Transparency** | Reproducibility and scope information | Yes—research-specific |
-| **Visual-Data-Presentation** | Figure/chart semantic elements | Extends visual forms |
-| **Attribution** | Source acknowledgment patterns | Extends Provenance |

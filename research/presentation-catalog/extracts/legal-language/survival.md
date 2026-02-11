@@ -36,17 +36,3 @@ about post-termination continuation. It's duration beyond normal term.
 - *Visual*: Persistent obligations highlighted
 
 ---
-
-## Summary: Proposed New Categories
-
-Based on legal language patterns, the following new categories may be warranted:
-
-| Category | What it communicates | Distinct from existing? |
-|----------|---------------------|------------------------|
-| **Deontic** | Normative status (required/permitted/forbidden) | Yes—normative modality |
-| **Conditionality** | Contingent relationships | Partially overlaps Temporal |
-| **Commitment** | Types of promises/assertions | Related to Evidential |
-| **Scope** | Boundaries and definitions | Related to Explanation |
-| **Effort-Level** | Performance standards | Yes—dimensions of obligation |
-| **Liability** | Risk allocation | Yes—specialized commitments |
-| **Temporal-Legal** | Normative temporal aspects | Extends Temporal |

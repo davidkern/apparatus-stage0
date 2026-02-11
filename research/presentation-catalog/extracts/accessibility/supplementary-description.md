@@ -1,6 +1,7 @@
 ---
 source: accessibility
 proposed-category: Cognitive-Support
+proposed-group: Grouping and Labeling
 name: Supplementary-Description
 ---
 
@@ -28,16 +29,3 @@ programmatically associated with a specific element. The association is the key.
 - *Visual*: Secondary text styling, info icon with tooltip
 
 ---
-
-## Summary: Proposed New Categories
-
-Based on accessibility standards and inclusive design, the following new
-categories may be warranted:
-
-| Category | What it communicates | Distinct from existing? |
-|----------|---------------------|------------------------|
-| **Orientation** | Where user is, how to navigate | Yes—distinct from Transition/State |
-| **Announcement** | When/how to notify of changes | Yes—about delivery timing |
-| **Alternative-Representation** | Same content, different mode | Yes—cross-sensory translation |
-| **Guidance** | Help avoiding/fixing errors | Partially overlaps Instruction |
-| **Cognitive-Support** | Reduced complexity, manageable chunks | Yes—about processing load |

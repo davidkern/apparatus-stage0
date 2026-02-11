@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Disclosure and Discovery
 name: Revelation
 ---
 
@@ -24,5 +25,3 @@ dramatic timing. Revelation is about when information appears, not just
 what it contains.
 
 ---
-
-## Setting Intents: World and Place

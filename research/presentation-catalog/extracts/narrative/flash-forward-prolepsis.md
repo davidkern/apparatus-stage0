@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Narrative Time
 name: Flash-forward (Prolepsis)
 ---
 

@@ -25,7 +25,6 @@ the intent.
 
 ---
 
-## Argumentative Intents
 
 Aristotle's treatment of enthymemes and examples suggests intents for
 logical structure.

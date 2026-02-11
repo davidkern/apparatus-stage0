@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Voice and Point of View
 name: Dialogue
 ---
 
@@ -32,5 +33,3 @@ conflict, and personality through speech.
 attributes source). Dialogue is dramatic and character-building.
 
 ---
-
-## Tension Intents: Engagement and Suspense

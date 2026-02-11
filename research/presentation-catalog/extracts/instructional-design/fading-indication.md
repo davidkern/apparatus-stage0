@@ -25,8 +25,3 @@ but specifically about learning support level. Unique to instructional
 contexts.
 
 ---
-
-## Intents for Learning Outcome Types
-
-Gagne's taxonomy of learning outcomes suggests that different types of
-knowledge require different communicative treatment.

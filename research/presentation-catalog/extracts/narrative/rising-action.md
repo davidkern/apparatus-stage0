@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Story Arc
 name: Rising Action
 ---
 

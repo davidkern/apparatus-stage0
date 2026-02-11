@@ -25,7 +25,3 @@ when summary is used for closure. Also related to Farewell (for
 conversation-level closure).
 
 ---
-
-## Intents from Searle's Taxonomy
-
-Searle's five categories of illocutionary acts suggest basic intent types.

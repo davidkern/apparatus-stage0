@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Stories Within Stories
 name: Embedded Narrative
 ---
 
@@ -24,5 +25,3 @@ on the outer narrative.
 instance) but fully narrative rather than illustrative of a point.
 
 ---
-
-## Oral Tradition Intents: Performance and Participation

@@ -1,6 +1,7 @@
 ---
 source: aristotle-rhetoric
 proposed-category: Emotional
+proposed-group: Argumentative
 name: Timeliness
 ---
 
@@ -24,14 +25,3 @@ temporal relevance of the content.
 focused on relevance window rather than elapsed time.
 
 ---
-
-## Summary: Proposed New Categories
-
-Based on Aristotle's Rhetoric, the following new categories may be warranted:
-
-| Category | What it communicates | Distinct from existing? |
-|----------|---------------------|------------------------|
-| **Persuasive** | Movement toward position/action | Yes—distinct from Instruction |
-| **Credibility** | Trustworthiness of claims | Partially overlaps Evidential |
-| **Emotional** | Specific emotional states | Yes—new dimension |
-| **Argumentative** | Logical moves in discourse | Partially overlaps Evidential |

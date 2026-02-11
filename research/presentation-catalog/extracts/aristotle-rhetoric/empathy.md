@@ -24,7 +24,3 @@ supported.
 Acknowledgement but focused on emotional state rather than input receipt.
 
 ---
-
-## Structural Intents from Classical Arrangement
-
-Aristotle identified parts of speech with distinct purposes.

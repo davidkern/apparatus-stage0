@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Meaning Beyond the Literal
 name: Motif
 ---
 

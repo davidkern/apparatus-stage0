@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: World and Place
 name: Scene-Setting
 ---
 

@@ -225,3 +225,272 @@ This suggests the catalog may have multiple granularity levels (purpose → tech
 
 ---
 
+## Research Material Reorganization
+
+Realized the discovery files in `apparatus/catalog/intents/discovery/` were research
+material polluting the apparatus repo's git history. Reorganized into a proper
+research structure.
+
+### New Structure
+
+```
+research/presentation-catalog/
+├── README.md                    # Conventions documentation
+├── extracts/                    # Fixed-point source extractions
+│   ├── <source>/                # One per source (8 total)
+│   │   ├── _meta.md             # Source metadata
+│   │   ├── _original/           # Backup of originals
+│   │   ├── _stash/              # Doesn't-fit-yet files
+│   │   └── <item>.md            # Leaf values with frontmatter
+│   └── tufte/                   # Special structure for chunked extraction
+│       ├── ch1a-multimodal/
+│       ├── ch1a-text-only/
+│       └── ...
+├── _dimension/                  # Symlink-based organization (to be built)
+└── _stash/                      # Process scripts
+```
+
+### Key Design Decisions
+
+1. **Underscore prefix = system namespace** — `_meta.md`, `_original/`, `_stash/`,
+   `_dimension/` are metadata/organization. Everything else is content.
+
+2. **Leaf files are fixed points** — Each extracted item is its own file with
+   frontmatter tracking provenance. These don't move.
+
+3. **Organization via symlinks** — `_dimension/<dim>/<category>/` contains symlinks
+   to leaf files. Multiple organizations can coexist. Reorganization is non-destructive.
+
+4. **Self-similar structure** — Each source can have its own local `_dimension/`
+   for internal organization before cross-source consolidation.
+
+### Inventory
+
+| Source | Items |
+|--------|-------|
+| accessibility | 21 |
+| aristotle-rhetoric | 19 |
+| conversation-analysis | 26 |
+| instructional-design | 25 |
+| legal-language | 24 |
+| narrative | 35 |
+| scientific-writing | 25 |
+| tufte (24 chunks) | ~400 |
+| **Total** | **~575** |
+
+### Next: Local Organization
+
+Work at source level first — build `_dimension/intent/<category>/` within each
+source to reveal its natural structure before attempting cross-source consolidation.
+
+---
+
+## Data Quality Assessment
+
+Attempted to build local `_dimension/` organization for aristotle-rhetoric. This
+revealed structural issues that led to a broader assessment.
+
+### Structural Inconsistency
+
+Each extraction agent invented its own output structure:
+
+- Some used `## New Intent Category: X` consistently
+- Some used `## X Intents: Y` as sub-groups
+- Some mixed both in semantically confusing ways (e.g., "Argumentative" as sub-group of "Emotional")
+
+Automated parsing cannot reliably extract consistent structure across sources.
+
+### Depth Assessment
+
+| Source | Items | Words | Source Type |
+|--------|-------|-------|-------------|
+| accessibility | 21 | 3,395 | Web summaries |
+| aristotle-rhetoric | 19 | 2,260 | Web summaries |
+| conversation-analysis | 26 | 3,950 | Web summaries |
+| instructional-design | 25 | 3,603 | Web summaries |
+| legal-language | 24 | 5,703 | Web summaries |
+| narrative | 35 | 4,218 | Web summaries |
+| scientific-writing | 25 | 4,576 | Web summaries |
+| **tufte** | **303** | **56,499** | **Primary text** |
+
+Tufte (from actual book pages) has 2x the words of all other sources combined.
+The web summary extractions are shallow skims of secondary sources.
+
+### What the Research Actually Showed
+
+The original research questioned whether presentation hierarchies exist within
+different modalities. They do, and a working hierarchy was created that demonstrated
+an Intent dimension exists.
+
+Survey-level investigation showed that different domains have Intent vocabulary,
+and overlaps between domains provided evidence the framing is correct.
+
+**This was survey work to validate the framework exists — not comprehensive
+extraction to build the category system from.**
+
+### The Mismatch
+
+We attempted to build a comprehensive categorization framework on top of survey
+data. Survey data validates "there's something here" but doesn't provide the
+depth needed for "here's the complete taxonomy."
+
+### Options Going Forward
+
+1. **Accept survey-level scope** — Use extracts to validate framework direction,
+   not as source of truth for categories. Build categories from first principles,
+   use extracts as sanity checks.
+
+2. **Deep extraction from primary sources** — Do Tufte-quality extraction on
+   key sources (actual Aristotle text, actual Mayer/Gagné papers, etc.). This is
+   significant work.
+
+3. **Hybrid** — Use Tufte as the deep foundation (it's already done), supplement
+   with targeted deep dives on specific gaps.
+
+---
+
+## Reframe: Recipes Over Taxonomy
+
+### The Insight
+
+Examined what the Tufte data actually contains. The raw extractions have
+technique-level detail:
+
+```
+Specific examples:
+- Erased box plots: vertical lines encode range, dots encode median (p. 125)
+- Quartile plot: "ten extra numbers (min, max, quartiles, median)"
+```
+
+The consolidation kept the "why" (intent categories) but lost the "what"
+(specific techniques with their components). For presently, we need the "what."
+
+### Taxonomy vs Recipe Book
+
+**Taxonomy:** "What are all the categories of intent?"
+- Comprehensive, abstract, needs to be complete
+- Requires full attention to huge problem space
+
+**Recipe Book:** "How do you render this specific thing?"
+- Practical, concrete, can grow incrementally
+- Directly actionable for presently
+
+A recipe specifies:
+- Intent (what to communicate)
+- Technique (how to achieve it)
+- Components (what elements, what they encode)
+- Parameters (what varies)
+- Forms (visual, typographic, auditory renderings)
+
+### Decision
+
+Build recipe book instead of taxonomy. Extract recipes from foundational
+primary sources:
+
+1. **Tufte's three books** — core data presentation vocabulary
+2. **Classical Rhetoric** (actual texts) — argument and oral presentation
+3. **One other** — TBD (typography, instructional design, or speech acts)
+
+Implementation-driven: pick recipes apparatus needs, extract, implement, repeat.
+Taxonomy emerges later from recipe collection if needed.
+
+See `research/presentation-catalog/recipes/README.md` for full writeup.
+
+---
+
+---
+
+## Aristotle Rhetoric Extraction
+
+Downloaded Kennedy's translation of Aristotle's *On Rhetoric* (Oxford, 2007) — 352 pages
+with scholarly commentary. Split into 12 chunks aligned with logical content boundaries.
+
+### Chunk Inventory
+
+| File | Pages | Content |
+|------|-------|---------|
+| b1-01-definition | 19 | Book 1, Ch 1-3: Definition, pisteis, species |
+| b1-02-deliberative | 29 | Book 1, Ch 4-8: Political/ethical topics |
+| b1-03-epideictic | 18 | Book 1, Ch 9-12: Praise/blame, virtue |
+| b1-04-judicial | 18 | Book 1, Ch 13-15: Justice, evidence |
+| b2-01-emotions-intro | 20 | Book 2, Ch 1-6: Ethos, anger, fear |
+| b2-02-emotions-fear | 15 | Book 2, Ch 7-9: Shame, kindliness, pity |
+| b2-03-emotions-envy | 12 | Book 2, Ch 10-11: Indignation, envy, emulation |
+| b2-04-character | 14 | Book 2, Ch 12-17: Youth, age, wealth, power |
+| b2-05-argument | 21 | Book 2, Ch 18-26: 28 topics, fallacies |
+| b3-01-style-intro | 23 | Book 3, Ch 1-6: Delivery, clarity |
+| b3-02-style-metaphor | 20 | Book 3, Ch 7-12: Metaphor, rhythm, wit |
+| b3-03-arrangement | 15 | Book 3, Ch 13-19: Speech structure |
+
+PDF chunks and text extractions in `/work/apparatus-research/reference/aristotle/chunks/`.
+
+### Extraction Results
+
+Ran parallel extraction across all 12 chunks. **252 recipes** extracted, ~12,000 lines.
+
+| File | Recipes | Key Categories |
+|------|---------|----------------|
+| aristotle-b1-definition.md | 16 | Pisteis, enthymeme/example, three species |
+| aristotle-b1-deliberative.md | 45 | Political topics, goods, degree comparisons |
+| aristotle-b1-epideictic.md | 25 | Virtue catalog, praise techniques, amplification |
+| aristotle-b1-judicial.md | 12 | Justice framework, non-artistic proofs |
+| aristotle-b2-emotions-intro.md | 15 | Anger/calmness, fear/confidence, friendship |
+| aristotle-b2-emotions-fear.md | 14 | Shame, kindliness, pity, indignation |
+| aristotle-b2-emotions-envy.md | 8 | Envy, emulation, contempt |
+| aristotle-b2-character.md | 6 | Character types by age/fortune |
+| aristotle-b2-argument.md | 42 | 28 enthymeme topics, 9 fallacies, refutation |
+| aristotle-b3-style-intro.md | 11 | Delivery, clarity, basic metaphor |
+| aristotle-b3-style-metaphor.md | 15 | Periodic style, visualization, verbal wit |
+| aristotle-b3-arrangement.md | 43 | Prooemion through epilogue |
+
+Recipe files in `/work/apparatus-research/research/presentation-catalog/recipes/`.
+
+### Schema Validation
+
+The recipe schema from the README worked across all content types:
+- Logical patterns (enthymeme topics)
+- Emotional mechanisms (anger, fear, pity)
+- Character adaptation (audience types)
+- Stylistic devices (metaphor, antithesis)
+- Speech structure (arrangement)
+
+Each recipe has: name, Greek term, intent, components (with encodes), parameters,
+forms, examples. Bidirectional — usable for production and recognition.
+
+### Observations to Review
+
+Each extraction noted observations that may suggest schema modifications:
+
+1. **Bidirectionality** — Many recipes work for both construction and recognition.
+   Should this be explicit in the schema?
+
+2. **Anti-patterns** — Fallacious topics (Ch. 24) are valuable for recognition.
+   Should there be a `type: fallacious` field?
+
+3. **Warnings/Limitations** — Aristotle notes when topics can mislead.
+   Should recipes have a `warnings` field?
+
+4. **Emotional triads** — Emotions follow a consistent structure (state of mind,
+   target, causes). This might warrant a specialized emotion-recipe schema.
+
+5. **Character types** — These are audience profiles, not techniques. Different
+   structure than argument patterns.
+
+6. **Hierarchical relationships** — Some recipes contain others (e.g., amplification
+   uses multiple sub-techniques). Should recipes have `contains` or `uses` links?
+
+7. **Cross-references** — Many topics reference each other or external works
+   (Topics, Poetics, Politics). Should there be a `references` field?
+
+8. **Chunk content mismatch** — One extraction noted the PDF chunk contained
+   different chapters than expected. Verify chunk boundaries.
+
+### Next Steps
+
+1. Review observations above — decide on schema modifications
+2. Consolidate across files — identify duplicates, hierarchies
+3. Consider Tufte extraction — apply same methodology to data visualization pole
+4. Begin implementation — pick recipes apparatus needs, implement in presently
+
+---
+

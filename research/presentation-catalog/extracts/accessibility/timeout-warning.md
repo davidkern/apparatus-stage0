@@ -29,8 +29,3 @@ related to Urgency from Aristotle research.
 - *Visual*: Countdown timer, progress indicator
 
 ---
-
-## Intents for Data Relationships
-
-Accessibility work on tables reveals intents about how data items relate
-to each other.

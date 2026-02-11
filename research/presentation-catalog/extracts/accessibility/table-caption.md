@@ -29,5 +29,3 @@ names a table.
 - *Visual*: Distinct heading style for table title
 
 ---
-
-## Grouping and Labeling Intent

@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: People in Stories
 name: Character Motivation
 ---
 

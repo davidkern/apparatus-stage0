@@ -23,18 +23,3 @@ stance or way of thinking about the domain. Gagne's affective domain.
 disposition rather than action. Could be in Persuasive category.
 
 ---
-
-## Summary: Proposed New Categories
-
-Based on instructional design literature, the following new categories may
-be warranted:
-
-| Category | What it communicates | Distinct from existing? |
-|----------|---------------------|------------------------|
-| **Activation** | Preparing cognitive state for learning | Yes - metacognitive focus |
-| **Guidance** | Graded support for learning | Yes - scaffolding concept |
-| **Elicitation** | Demanding learner generation | Partially overlaps Instruction |
-| **Feedback** | Learning-specific response | Extends Emphasis/State |
-| **Signaling** | Structural attention direction | Could be Transition sub |
-| **Motivation** | Engagement and self-efficacy | Overlaps Persuasive/Emotional |
-| **Sequencing** | Order and integration signals | Could be Transition sub |

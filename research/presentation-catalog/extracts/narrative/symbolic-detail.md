@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Meaning Beyond the Literal
 name: Symbolic Detail
 ---
 
@@ -24,17 +25,3 @@ for something larger.
 domains) but embedded in narrative rather than explicitly comparative.
 
 ---
-
-## Summary: Proposed New Category
-
-Based on narrative theory research, a **Narrative** category is warranted,
-containing intents that:
-
-1. Communicate through temporal unfolding (story arc)
-2. Filter through consciousness (voice and perspective)
-3. Create and resolve tension (suspense and revelation)
-4. Represent people in motion (character)
-5. Locate action in space/time (setting)
-6. Layer stories within stories (frame)
-7. Invite participation (oral tradition)
-8. Carry meaning beyond the literal (symbolism)

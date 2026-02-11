@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Disclosure and Discovery
 name: Mystery
 ---
 

@@ -1,6 +1,7 @@
 ---
 source: aristotle-rhetoric
 proposed-category: Emotional
+proposed-group: Argumentative
 name: Refutation
 ---
 
@@ -23,5 +24,3 @@ audience may hold.
 Explanation but confrontational rather than constructive.
 
 ---
-
-## Timing Intent from Kairos

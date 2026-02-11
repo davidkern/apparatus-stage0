@@ -27,17 +27,3 @@ performative rather than descriptive. Status reports current state;
 Declaration changes it.
 
 ---
-
-## Summary: Proposed New Categories
-
-Based on conversation analysis, speech act theory, and pragmatics research,
-the following new categories may be warranted:
-
-| Category | What it communicates | Distinct from existing? |
-|----------|---------------------|------------------------|
-| **Interactional** | Channel/relationship maintenance | Yes--meta-communicative |
-| **Face-Work** | Social image protection | Yes--social dimension |
-| **Remedial** | Breach repair | Partially overlaps Emphasis/Persuasive |
-| **Preference-Marked** | Response structure signals | Yes--structural marking |
-| **Implicature** | Indirect/implicit meaning | Yes--new mechanism |
-| **Topic-Management** | Conversational focus | Overlaps Transition |

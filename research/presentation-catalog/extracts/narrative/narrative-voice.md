@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Voice and Point of View
 name: Narrative Voice
 ---
 

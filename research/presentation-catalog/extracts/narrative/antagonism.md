@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: People in Stories
 name: Antagonism
 ---
 
@@ -23,5 +24,3 @@ stands in the way—the forces creating conflict and obstacle.
 tension that Emphasis/Warning responds to.
 
 ---
-
-## Revelation Intents: Disclosure and Discovery

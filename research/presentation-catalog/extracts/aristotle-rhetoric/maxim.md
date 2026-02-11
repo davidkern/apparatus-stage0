@@ -1,6 +1,7 @@
 ---
 source: aristotle-rhetoric
 proposed-category: Emotional
+proposed-group: Argumentative
 name: Maxim
 ---
 

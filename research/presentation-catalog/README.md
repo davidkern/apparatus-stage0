@@ -9,104 +9,220 @@ is realized (forms, techniques, patterns).
 ```
 presentation-catalog/
 ├── README.md                    # This file
-├── extracts/                    # Fixed-point source extractions
-│   ├── <source>/                # One directory per source
-│   │   ├── _meta.md             # Source metadata (provenance, URLs)
-│   │   ├── _original/           # Backup of original files
-│   │   ├── _stash/              # Files that don't fit yet
-│   │   ├── <item>.md            # Individual extracted items (leaf values)
-│   │   └── ...
-│   └── ...
-├── _dimension/                  # Organizational views via symlinks
-│   └── <dimension>/             # e.g., "intent", "technique", "anti-pattern"
-│       └── <category>/          # e.g., "evidential", "comparative"
-│           └── <item>.md        # Symlink to ../../../extracts/...
-└── _stash/                      # Process artifacts, scripts, etc.
+├── _tools/                      # Scripts, validators, utilities
+├── extracts/                    # Survey-level source extractions
+│   └── <source>/                # One directory per source
+│       ├── _meta.md             # Source metadata (provenance, URLs)
+│       ├── _original/           # Backup of original files
+│       ├── _stash/              # Files that don't fit yet
+│       └── <item>.md            # Individual extracted items (leaf values)
+├── recipes/                     # Deep primary source extractions
+│   ├── SCHEMA.md                # Frontmatter schema for recipes
+│   ├── _generator-prompt.md     # How to generate prompts from procedures + context
+│   ├── _procedures/             # Reusable procedure templates
+│   │   ├── generate-chunk-extractions.md
+│   │   ├── extract-recipes.md
+│   │   └── consolidate-source.md
+│   ├── _context.md              # General extraction context (content)
+│   └── <source>/                # One directory per source
+│       ├── _meta.md             # Source parameters (chunks, paths, refs)
+│       ├── _context.md          # Source-specific extraction guidance
+│       ├── _prompt/             # Generated prompts for this source
+│       │   └── <task>.md        # Concrete invocation of a procedure
+│       └── <chunk>/             # One directory per extraction unit
+│           ├── _context.md      # Chunk-specific guidance (optional)
+│           ├── _prompt/         # Generated prompts for this chunk
+│           │   └── <task>.md    # Concrete invocation of a procedure
+│           └── <recipe>.md      # Individual recipes (leaf values)
+└── _dimension/                  # Organizational views via symlinks
 ```
 
-## Conventions
+## Naming Conventions
 
-### Underscore Prefix
+### Content Files
 
-Files and directories with `_` prefix are **system/metadata** — not content values.
+Leaf values (extracted items, recipes) use **lowercase-kebab** names:
+
+```
+enthymeme-from-opposites.md
+reveal-data.md
+small-multiples.md
+```
+
+### Documentation Files
+
+Public interface documentation uses **UPPERCASE** names without underscore:
+
+| File | Purpose |
+|------|---------|
+| `README.md` | Overview and entry point for a directory |
+| `SCHEMA.md` | Frontmatter schema definition for a space |
+
+### System Files (Underscore Prefix)
+
+Files and directories with `_` prefix are **implementation concerns** — not content.
 
 | Name | Purpose |
 |------|---------|
 | `_meta.md` | Metadata about the containing directory |
-| `_notes.md` | Observations, tensions, questions (not restructuring) |
-| `_original/` | Backups of files before processing |
+| `_context.md` | Extraction guidance at this level (hierarchical) |
+| `_prompt.md` | Actual prompt passed to extraction task |
+| `_notes.md` | Observations, tensions, questions |
+| `_tools/` | Scripts, validators, utilities |
 | `_stash/` | Files that don't fit the structure yet |
+| `_original/` | Backups of files before processing |
 | `_dimension/` | Symlink-based organizational views |
 
-Anything **without** underscore prefix is a **content value** — a leaf item to be
-categorized and organized.
+## Procedures, Context, and Prompts
 
-### Leaf Files (Values)
+Extraction work follows a layered model that separates reusable procedures from
+source-specific parameters and context.
 
-Each leaf file represents one extracted item. Required frontmatter:
+### Procedures (`_procedures/`)
 
-```yaml
----
-source: <source-name>           # e.g., "aristotle-rhetoric", "tufte"
-name: <item-name>               # Human-readable name
-proposed-category: <category>   # Optional: suggested categorization
----
+Reusable templates that define **how** to perform a task, independent of which
+source or chunk. Like function definitions — they specify the steps without
+binding to specific parameters.
+
+```
+_procedures/
+├── generate-chunk-extractions.md   # How to create extraction prompts for any source
+├── extract-recipes.md              # How to extract recipes from any chunk
+└── consolidate-source.md           # How to consolidate recipes across chunks
 ```
 
-Additional frontmatter varies by source. For example, Tufte items include:
+Procedures reference `_context.md` and `_meta.md` generically (e.g., "read the
+source's _meta.md") rather than naming specific files.
+
+### Context Files (`_context.md`)
+
+Content guidance at each level. Context files provide **what** to include —
+domain knowledge, conventions, examples — while procedures provide **how**.
+
+```
+recipes/_context.md                    # General recipe extraction guidance
+recipes/aristotle-rhetoric/_context.md # Source-specific (Bekker refs, Greek terms)
+recipes/aristotle-rhetoric/b2-argument/_context.md  # Chunk-specific (optional)
+```
+
+### Parameters (`_meta.md`)
+
+Structured metadata that parameterizes procedures — chunk lists, file paths,
+reference systems. Unlike context (prose guidance), meta is structured data.
+
+### Prompt Generation
+
+Prompts are generated by combining:
+- A procedure (the template)
+- Context files (integrated from all levels)
+- Parameters (from `_meta.md`)
+
+```
+_procedures/extract-recipes.md
+  + recipes/_context.md
+  + recipes/aristotle-rhetoric/_context.md
+  + recipes/aristotle-rhetoric/_meta.md
+  → aristotle-rhetoric/b2-argument/_prompt/extract.md
+```
+
+The `_generator-prompt.md` describes how this combination works.
+
+### Prompt Files (`_prompt/<task>.md`)
+
+Each `_prompt/` directory contains concrete prompts — the exact input passed to
+tasks. These are generated artifacts that record:
+- Which procedure was used
+- What context was integrated
+- What parameters were bound
+
+This enables:
+- Reproducing the extraction with identical input
+- Varying any layer (procedure, context, parameters) for sensitivity analysis
+- Understanding exactly what produced the content
+
+The content in a directory was generated by the task that received its prompt.
+
+## Leaf Files (Content)
+
+Each leaf file represents one extracted item with YAML frontmatter and markdown body.
+
+### Frontmatter
+
+Required fields vary by space. Each space defines its schema in `SCHEMA.md`.
+
+**Extracts** (survey-level) use minimal frontmatter:
 
 ```yaml
 ---
-source: tufte
-chunk: ch1a                     # Which chunk of the book
-modality: multimodal            # "multimodal" or "text-only"
+source: aristotle-rhetoric
 proposed-category: Evidential
-name: Reveal Data
+proposed-group: Logical      # optional
+name: Enthymeme
 ---
 ```
 
-The body contains the item's definition, examples, and other extracted content.
+**Recipes** (deep extraction) use structured frontmatter per `recipes/SCHEMA.md`.
 
-### Extracts (Fixed Points)
+### Body
 
-The `extracts/<source>/` directories are **fixed points** — immutable source data.
-Each item file tracks its provenance in frontmatter, so it stands alone when read.
+The body contains the item's definition, examples, and extracted content. The body
+elaborates on frontmatter — it should add understanding, not duplicate structured
+fields in prose.
 
-Do not reorganize or deduplicate within `extracts/`. Organization happens via
-symlinks in `_dimension/`.
+## Spaces
 
-### Dimensions (Organizational Views)
+### Extracts
+
+Survey-level extractions from secondary sources (web summaries, overviews). Used to
+validate that a concept space exists before deep extraction.
+
+Extracts are **fixed points** — immutable source data. Organization happens via
+symlinks in `_dimension/`, not by moving files.
+
+### Recipes
+
+Deep extractions from primary sources with structured schemas. Each recipe is
+actionable — precise enough to implement.
+
+Recipes use the schema in `recipes/SCHEMA.md` and follow the context/prompt
+pattern for reproducibility.
+
+## Dimensions (Organizational Views)
 
 The `_dimension/` directory contains symlink-based views that organize values
 without moving or duplicating them.
 
-Example: organizing by intent category
-
 ```
 _dimension/intent/
 ├── evidential/
-│   ├── reveal-data.md -> ../../extracts/tufte/ch1a-multimodal/reveal-data.md
-│   └── claim-evidence.md -> ../../extracts/aristotle-rhetoric/claim-evidence.md
+│   ├── reveal-data.md -> ../../recipes/tufte-vdqi/.../reveal-data.md
+│   └── enthymeme.md -> ../../recipes/aristotle-rhetoric/.../enthymeme.md
 ├── comparative/
-│   └── enable-comparison.md -> ../../extracts/tufte/ch1a-multimodal/enable-comparison.md
+│   └── small-multiples.md -> ../../recipes/tufte-vdqi/.../small-multiples.md
 └── ...
 ```
 
-Multiple dimensions can coexist (intent, technique, anti-pattern, etc.). The same
-item can appear in multiple categories if classification is uncertain.
+Multiple dimensions can coexist. The same item can appear in multiple categories.
 
-Each source directory can also have its own local `_dimension/` for internal
-organization before cross-source consolidation.
+## Tools
 
-### Workflow
+The `_tools/` directory (at any level) contains scripts and utilities:
 
-1. **Extract** — Run discovery against sources, split into leaf files with frontmatter
-2. **Organize locally** — Use `_dimension/` within each source to categorize
-3. **Organize globally** — Use top-level `_dimension/` to consolidate across sources
-4. **Iterate** — Create alternative organizations as understanding improves
+```
+_tools/validate.py              # Schema validation
+_tools/split-extracts.py        # Processing scripts
+```
 
-The symlink approach means organization is reversible and versioned — old views
-can be kept while new ones are explored.
+Tools at higher levels work across the space. Tools within a source directory
+are source-specific.
+
+## Workflow
+
+1. **Extract** — Run tasks against sources, producing leaf files with frontmatter
+2. **Validate** — Run `_tools/validate.py` to check schema conformance
+3. **Organize locally** — Use `_dimension/` within each source to categorize
+4. **Organize globally** — Use top-level `_dimension/` to consolidate across sources
+5. **Iterate** — Create alternative organizations as understanding improves
 
 ## Found Processes
 

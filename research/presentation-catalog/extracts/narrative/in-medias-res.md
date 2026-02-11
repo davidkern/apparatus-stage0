@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Narrative Time
 name: In Medias Res
 ---
 
@@ -24,5 +25,3 @@ audience to catch up as the narrative provides context retrospectively.
 rather than content-based. It's a strategy, not a moment.
 
 ---
-
-## Character Intents: People in Stories

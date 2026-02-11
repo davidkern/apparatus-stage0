@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Story Arc
 name: Epilogue
 ---
 
@@ -24,5 +25,3 @@ Distinct from denouement in being optional and often temporally distant.
 of Transition/Farewell with narrative content.
 
 ---
-
-## Perspective Intents: Voice and Point of View

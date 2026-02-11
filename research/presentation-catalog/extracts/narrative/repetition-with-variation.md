@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Performance and Participation
 name: Repetition with Variation
 ---
 
@@ -25,5 +26,3 @@ that breaks or fulfills it.
 emphasis on repetition and progressive change rather than linear progression.
 
 ---
-
-## Symbolic Intents: Meaning Beyond the Literal

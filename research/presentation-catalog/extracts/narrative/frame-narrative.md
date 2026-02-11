@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Stories Within Stories
 name: Frame Narrative
 ---
 

@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: Performance and Participation
 name: Formulaic Opening
 ---
 

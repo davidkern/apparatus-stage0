@@ -1,6 +1,7 @@
 ---
 source: narrative
 proposed-category: Narrative
+proposed-group: World and Place
 name: World-Building
 ---
 
@@ -26,5 +27,3 @@ Explanation but for systems rather than concepts. World-building creates
 the possibility space.
 
 ---
-
-## Frame Intents: Stories Within Stories
