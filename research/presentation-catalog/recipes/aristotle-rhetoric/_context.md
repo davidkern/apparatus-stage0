@@ -58,6 +58,16 @@ source:
 
 Kennedy's translation includes Bekker numbers in the margins. When extracting, capture both the Book/Chapter reference and the Bekker number when available.
 
+## The Three Pisteis
+
+Aristotle's central framework — three means of persuasion:
+
+- **Ethos** (ēthos) — character/credibility of speaker
+- **Pathos** (pathos) — emotional state of audience
+- **Logos** (logos) — the argument itself
+
+Many recipes involve one or more pisteis. Note which apply in the description when relevant.
+
 ## Terminology
 
 ### Key Greek Terms to Preserve
@@ -96,7 +106,7 @@ Kennedy uses consistent English renderings:
 
 3. **Emotional techniques**: Chapters 2-11 of Book 2 describe how to arouse and calm specific emotions. Each emotion has a characteristic structure.
 
-4. **Character adaptation**: Chapters 12-17 describe character types and how arguments should adapt to them.
+4. **Character adaptation**: Chapters 12-17 describe character types (youth, elderly, wealthy, etc.) and how arguments should adapt to them. Note: these are audience profiles, not argument techniques. Consider using `extensions.recipe_type: audience-adaptation` to distinguish them.
 
 5. **Style techniques**: Book 3 covers specific stylistic devices (metaphor, simile, antithesis, etc.).
 
