@@ -44,6 +44,31 @@ VALID_RELATIONSHIPS = {
 }
 
 
+# === Path Classification ===
+
+
+def is_content_file(path: Path) -> bool:
+    """Determine if a path points to content (vs metadata).
+
+    Content files should be validated. Metadata files are skipped.
+
+    Metadata rules:
+    - Any path component (directory or file) starting with "_"
+    - Any file with basename in all capital letters (e.g., README.md, SCHEMA.md)
+    """
+    # Check if any path component starts with "_"
+    for part in path.parts:
+        if part.startswith("_"):
+            return False
+
+    # Check if basename (without extension) is all uppercase
+    stem = path.stem
+    if stem.isupper():
+        return False
+
+    return True
+
+
 # === Validation Functions ===
 
 
@@ -281,8 +306,8 @@ def validate_file(file: Path) -> list[ValidationError]:
         )
         return errors
 
-    # Skip schema, readme, and system files (underscore prefix)
-    if file.name in ("SCHEMA.md", "README.md") or file.name.startswith("_"):
+    # Skip metadata files
+    if not is_content_file(file):
         return errors
 
     # Read and parse
@@ -310,17 +335,8 @@ def validate_directory(directory: Path) -> list[ValidationError]:
     """Validate all recipe files in a directory."""
     errors = []
 
-    # Find all markdown files, excluding special files
-    md_files = sorted(directory.glob("**/*.md"))
-    md_files = [
-        f
-        for f in md_files
-        if f.name not in ("SCHEMA.md", "README.md")
-        and "/_tools/" not in str(f)
-        and "/_prompt/" not in str(f)  # Skip prompt files
-        and "/_generators/" not in str(f)  # Skip generator files
-        and not f.name.startswith("_")  # Skip system files (_context.md, etc.)
-    ]
+    # Find all content markdown files (skip metadata)
+    md_files = sorted(f for f in directory.glob("**/*.md") if is_content_file(f))
 
     if not md_files:
         print(f"No recipe files found in {directory}")
@@ -345,14 +361,8 @@ def main():
 
         if path.is_dir():
             errors = validate_directory(path)
-            # Count only recipe files (same filter as validate_directory)
-            md_files = [
-                f
-                for f in path.glob("**/*.md")
-                if f.name not in ("SCHEMA.md", "README.md")
-                and "/_tools/" not in str(f)
-                and not f.name.startswith("_")
-            ]
+            # Count only content files (same filter as validate_directory)
+            md_files = [f for f in path.glob("**/*.md") if is_content_file(f)]
             files_checked += len(md_files)
         elif path.is_file():
             errors = validate_file(path)
