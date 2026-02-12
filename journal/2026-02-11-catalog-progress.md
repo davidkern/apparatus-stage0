@@ -127,9 +127,112 @@ Split into 10 chunks (169 pages total):
 2. Mid-section splits: Initial boundaries cut sections in half, losing context.
    Fix: Added verification step, adjusted 3 boundaries (ch2a/2b, ch2b/2c, ch3a/3b).
 
+## Harris Consolidation Experiment
+
+After extracting 379 recipes from Harris across 25 chunks, ran consolidation. First attempt
+used the original `consolidate-source.md` prompt. Results were poor:
+
+**Problems with original approach:**
+
+1. **Edited in place** — Deleted 38 "duplicate" files without merging unique content
+2. **Mechanical framing** — Focused on deduplication rather than knowledge synthesis
+3. **Missing context** — Had to discover that some "duplicates" were split entries spanning
+   chunk boundaries; others were primary vs. secondary treatments
+4. **Underspecified merging** — "Merge unique content" without defining what/how
+5. **Wrong goal** — Cleaning up extraction artifacts rather than restructuring for intent
+
+The implied goal: restructure knowledge to support intent-driven visualization selection.
+System accepts user intent → produces visualization guidance. Needs to traverse:
+Intent → Techniques → Chart Types → Construction.
+
+Harris organizes alphabetically by chart name. Need to reorganize around:
+- **Intents**: What user wants to communicate (compare, show change, part-to-whole, etc.)
+- **Techniques**: Reusable patterns (stacking, grouping, 100% normalization, etc.)
+- **Data requirements**: What constrains visualization choice
+- **Components**: Shared building blocks (axes, scales, legends)
+
+**Revised approach:**
+
+Wrote new prompt: `harris-information-graphics/_prompt/synthesize.md`
+
+Key changes:
+1. **Read-only source** — Output to `_synthesized/`, don't modify extractions
+2. **Phased approach** — Analysis → Structure Design → Synthesis
+3. **"What to expect" section** — Explains split entries, primary vs. secondary, etc.
+4. **Goal-oriented framing** — Restructure for intent navigation, not cleanup
+5. **Flexible output** — Can use .md, .yaml, directory structure, symlinks
+
+**Phase 1 results:**
+
+Ran analysis phase. Produced `_synthesized/analysis.md` with:
+- 10 communication intents identified (compare, show-change, part-to-whole, distribution, etc.)
+- 13 reusable techniques (stacking, grouping, circular, matrix, proportional sizing, etc.)
+- 5 data requirement dimensions
+- 17+ fragmented concepts needing unification
+- Clear fragment inventory with primary/secondary identification
+
+Much better than first attempt — no destructive changes, structured output, ready for iteration.
+
+**Observations for prompt design:**
+
+1. Framing matters more than mechanical instructions
+2. "What to expect" sections reduce discovery friction
+3. Phased approach prevents premature action
+4. Read-only source + separate output enables iteration
+5. Goal statement should be explicit and early
+
+**Phase 2 results:**
+
+Produced `_synthesized/structure.md` with comprehensive design:
+
+1. **Organization scheme**: 6 top-level directories
+   - `intents/` (10 files) - communication goals
+   - `techniques/` (12 files) - reusable construction patterns
+   - `chart-types/` (~60 files) - organized by visual family (bar/, column/, line/, etc.)
+   - `components/` (~20 files) - shared building blocks
+   - `data-types/` (4 files) - characteristic definitions
+   - `mappings/` (4 YAML files) - machine-navigable relationships
+
+2. **Recipe transformations** explicitly categorized:
+   - 1:1 mappings (simple-bar-graph transfers directly)
+   - Merging (mosaic-graph from 4 sources → 1 unified recipe)
+   - Extraction (stacking technique → independent file, referenced by 6+ chart types)
+   - Restructuring (separation of selection vs. construction guidance)
+
+3. **Relationship representation** via YAML mappings:
+   - `intent-to-charts.yaml` with selection conditions and strength ratings
+   - `chart-to-techniques.yaml` with applicability patterns
+   - `data-to-charts.yaml` with compatible/incompatible constraints
+   - `chart-to-components.yaml` with required/optional components
+
+4. **Seven key decisions documented** with rationale and trade-offs:
+   - Family-based chart organization (preserves Harris structure, mappings handle navigation)
+   - Techniques as first-class recipes (avoid duplication, enable composition)
+   - YAML for traversal, Markdown for description
+   - Symlinks for dual membership (histogram is column variant AND statistical display)
+   - Provenance tracking in separate file
+   - Intent files as primary entry points
+   - Secondary mentions absorbed into primary recipes
+
+The structure supports three navigation patterns:
+1. Intent-driven: "I want to show X" → find compatible charts
+2. Data-driven: "I have Y data" → see what works
+3. Construction: Building a chart → follow technique/component refs
+
+**Observations:**
+
+- The phased approach worked well - analysis informed structure naturally
+- Having the agent explain decisions/trade-offs produced useful documentation
+- YAML mapping examples are concrete enough to implement
+- Symlink decision is pragmatic (histogram dual-membership)
+- Provenance tracking addresses "where did this come from" systematically
+
+Ready for Phase 3 (actual synthesis) but that's the heavy lifting.
+
 ## Next Steps
 
-1. Split Harris using same methodology (fresh session to validate procedure)
-2. Set up extraction prompts for Engelhardt
-3. Run extraction on both new sources
-4. Extract remaining Tufte and Aristotle chunks as batch
+1. Complete Harris consolidation experiment (Phase 2, Phase 3)
+2. Refine consolidation prompt based on findings
+3. Split Harris using source-preparation methodology (separate from consolidation)
+4. Set up extraction prompts for Engelhardt
+5. Run extraction on both new sources
