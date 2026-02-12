@@ -211,34 +211,13 @@ See the top-level `presentation-catalog/README.md` for the full model.
 Sources must be prepared before extraction. See `methodology/source-preparation.md`.
 
 Once a source is prepared (validated `_source.yaml` in `reference/<source>/`), set it up
-for recipe extraction:
+for recipe extraction using a fresh agent with this prompt:
 
 ```
-Follow recipes/_generators/setup-source.md
-
-Source directory: reference/<source>/
-Output directory: recipes/<slug>/
+Follow research/presentation-catalog/recipes/_generators/setup-source.md
+with the source at
 ```
 
 The setup task reads metadata from `_source.yaml`, examines the source material, and
 creates `_context.md` with extraction guidance. No seed prompts or templating needed —
 the generator contains all static references, and metadata comes from the source.
-
-## Next Steps
-
-1. ~~Define recipe YAML schema precisely~~ — Done: [SCHEMA.md](SCHEMA.md)
-2. ~~Set up context/prompt structure~~ — Done: `_context.md` files created
-3. ~~Pilot extraction on `aristotle-rhetoric/b2-argument/`~~ — Done: 44 recipes
-4. ~~Pilot extraction on `tufte-vdqi/ch6-maximization/`~~ — Done: 8 recipes
-5. Full Aristotle re-extraction (remaining 11 chunks)
-6. Full Tufte extraction (remaining 8 chapters)
-7. Implement first recipes in presently (range-frame, quartile-plot candidates)
-
-## Extraction History
-
-| Source | Chunk | Recipes | Status |
-|--------|-------|---------|--------|
-| Aristotle (Kennedy) | b2-05-argument | 44 | Complete |
-| Tufte VDQI | ch6-maximization | 8 | Complete |
-| Aristotle (Kennedy) | 11 other chunks | — | Staged |
-| Tufte VDQI | 8 other chapters | — | Staged |

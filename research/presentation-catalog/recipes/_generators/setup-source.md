@@ -7,13 +7,16 @@ Sets up a recipe extraction directory for a prepared source.
 Single responsibility: Examine source material, create source-level structure, and
 stage the prompt for the next step. Does NOT run the next step.
 
-## Input
+## Parameters
 
-- **Source directory**: Path to prepared source (e.g., `reference/harris-information-graphics/`)
-- **Output directory**: Path for extraction output (e.g., `recipes/harris-information-graphics/`)
+- **Source directory**: Path to prepared source
+- **Output directory**: Path for extraction output
 
 The source directory must contain a valid `_source.yaml` (see `methodology/source-preparation.md`).
 Work metadata (title, author, slug, chunks) is read from `_source.yaml`.
+
+Create the output directory in `research/presentation-catalog/recipes` with the
+same name as the source directory.
 
 ## References
 
