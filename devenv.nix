@@ -8,6 +8,11 @@ let
   isLinux = pkgs.stdenv.isLinux;
 in
 {
+  # PDF tools for source preparation
+  packages = [
+    pkgs.poppler-utils # pdfseparate, pdfunite, pdftotext, pdfinfo
+  ];
+
   # Launch a practitioner agent inside an isolated bubble
   scripts.practitioner = lib.mkIf isLinux {
     exec = ''
