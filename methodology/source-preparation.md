@@ -19,18 +19,13 @@ Skip when:
 
 ## Prerequisites
 
-PDF tools from `poppler-utils`:
+PDF tools are available in devenv:
 
-```bash
-# If not in devenv, use nix-shell
-nix-shell -p poppler-utils --run "bash"
-
-# Tools available:
-# - pdfseparate: extract individual pages
-# - pdfunite: combine pages into chunks
-# - pdftotext: extract text from PDF
-# - pdfinfo: get page count and metadata
-```
+- `qpdf` — direct page range extraction (preferred)
+- `pdfseparate` — extract individual pages
+- `pdfunite` — combine pages into chunks
+- `pdftotext` — extract text from PDF
+- `pdfinfo` — get page count and metadata
 
 ## Procedure
 
@@ -64,31 +59,12 @@ Manually review the PDF to identify:
 - Dense visual content may need smaller chunks
 - Sparse text-heavy content can tolerate larger chunks
 
-**Example chunk plans:**
-
-Aristotle's Rhetoric (352 pages, 3 books, ~26 chapters):
-```
-b1-01-definition     pp. 1-19    (Book 1, Ch 1-3)
-b1-02-deliberative   pp. 20-48   (Book 1, Ch 4-8)
-b1-03-epideictic     pp. 49-66   (Book 1, Ch 9-12)
-...
-```
-
-Tufte VDQI (191 pages, 9 chapters):
-```
-ch1a    pp. 1-20    (Chapter 1, first half)
-ch1b    pp. 21-40   (Chapter 1, second half)
-ch2a    pp. 41-55   (Chapter 2, first half)
-...
-```
-
 ### 3. Create Directory Structure
 
 ```
 reference/<source>/
 ├── <source-full>.pdf           # Original source
-├── _source.yaml                # Work metadata (required)
-├── chunk-inventory.md          # Chunk documentation (required)
+├── _source.yaml                # Metadata and chunk inventory
 └── chunks/                     # Split chunks
     ├── <chunk-1>.pdf
     ├── <chunk-1>.txt           # Optional text extraction
@@ -100,26 +76,18 @@ reference/<source>/
 
 ```bash
 cd reference/<source>
+mkdir -p chunks
 
 # Extract page range to a chunk
-# Note: pdfseparate extracts individual pages, then pdfunite combines them
-
-# Method 1: Extract range directly with qpdf (if available)
 qpdf source.pdf --pages . 1-19 -- chunks/chunk-01.pdf
-
-# Method 2: Using pdfseparate + pdfunite
-mkdir -p temp
-pdfseparate -f 1 -l 19 source.pdf temp/page-%d.pdf
-pdfunite temp/page-*.pdf chunks/chunk-01.pdf
-rm -r temp
-
-# Repeat for each chunk...
+qpdf source.pdf --pages . 20-40 -- chunks/chunk-02.pdf
+# ... repeat for each chunk
 ```
 
 **Naming conventions:**
 - Use descriptive slugs: `b2-05-argument.pdf`, `ch6-maximization.pdf`
 - Include sequence hints if order matters: `01-intro.pdf`, `02-methods.pdf`
-- Match naming to how you'll reference chunks in extraction prompts
+- The chunk filename (without .pdf) becomes the chunk `id` in _source.yaml
 
 ### 5. Extract Text (Optional)
 
@@ -129,7 +97,6 @@ Text extraction is useful for:
 - Quick content verification
 
 ```bash
-# Extract text from each chunk
 for chunk in chunks/*.pdf; do
     pdftotext "$chunk" "${chunk%.pdf}.txt"
 done
@@ -151,9 +118,7 @@ For each chunk, check:
 
 1. **Chapter starts**: First page should show chapter/section heading (not mid-paragraph)
 2. **Chapter ends**: Last page should complete a section (not cut mid-concept)
-3. **Split boundaries**: Where chunks split mid-chapter, verify:
-   - The split occurs at a section boundary, not mid-section
-   - Neither chunk loses essential context for understanding
+3. **Split boundaries**: Where chunks split mid-chapter, verify the split occurs at a section boundary
 
 ```bash
 # Check first and last pages of each chunk
@@ -169,48 +134,48 @@ done
 ```
 
 **Common problems to catch:**
-- Glob sorting issue: `page-100.pdf` sorts before `page-92.pdf` lexicographically
-  - Fix: Use `sort -V` for version/numeric sorting
-- Mid-section splits: Concept introduced at end of chunk A, elaborated at start of chunk B
-  - Fix: Adjust boundary to keep section together
-- Missing pages: Gap between chunk boundaries
-  - Fix: Verify consecutive page numbers across chunks
+- Glob sorting: `page-100.pdf` sorts before `page-92.pdf` — use `sort -V`
+- Mid-section splits: adjust boundary to keep section together
+- Missing pages: verify consecutive page numbers across chunks
 
-### 7. Document the Chunking
+### 7. Create Source Metadata
 
-Create `chunk-inventory.md`:
-
-```markdown
-# Chunk Inventory: <Source>
-
-**Source**: <Full title>
-**Total pages**: <N>
-**Chunk count**: <N>
-**Created**: <date>
-
-## Chunks
-
-| Chunk | Pages | Content |
-|-------|-------|---------|
-| ch1a | 1-20 | Introduction, definitions |
-| ch1b | 21-40 | Historical examples |
-| ... | ... | ... |
-```
-
-### 8. Create Source Metadata
-
-Create `_source.yaml` with work metadata:
+Create `_source.yaml` with work metadata and chunk inventory:
 
 ```yaml
 work: "The Full Title of the Work"
 author: "Author Name"
 edition: "Edition info (optional)"
+translator: "Translator Name (if applicable)"
 slug: source-slug
+pages: 352
+page_offset: 15  # Optional: if PDF pages differ from book pages
+created: 2026-02-11
+
+chunks:
+  - id: ch1-intro
+    pages: 1-20
+    content: "Chapter 1: Introduction"
+  - id: ch2a-methods
+    pages: 21-40
+    content: "Chapter 2, first half: Methods"
+  # ... one entry per chunk
+
+notes:
+  - "Any relevant observations about the source"
+  - "Chunking decisions, boundary notes, etc."
 ```
 
-The `slug` field becomes the directory name in downstream pipelines.
+**Required fields:**
+- `work`: Full title
+- `author`: Author name
+- `slug`: URL-safe identifier (becomes directory name in pipelines)
+- `chunks`: Array of chunk objects, each with `id`, `pages`, `content`
 
-### 9. Validate
+**Optional fields:**
+- `edition`, `translator`, `pages`, `page_offset`, `created`, `notes`
+
+### 8. Validate
 
 Run the validation script to confirm the source is ready:
 
@@ -220,8 +185,8 @@ python research/presentation-catalog/_tools/validate-source.py reference/<source
 
 The validator checks:
 - `_source.yaml` exists with required fields
-- `chunks/` directory contains PDF files
-- `chunk-inventory.md` exists
+- Each chunk has `id`, `pages`, `content`
+- `chunks/` directory contains PDF for each chunk id
 
 Source preparation is complete when validation passes.
 
@@ -229,19 +194,13 @@ Source preparation is complete when validation passes.
 
 | Tool | Purpose | Example |
 |------|---------|---------|
+| `qpdf` | Extract page range | `qpdf in.pdf --pages . 1-10 -- out.pdf` |
 | `pdfinfo` | Get page count, metadata | `pdfinfo source.pdf` |
-| `pdfseparate` | Extract individual pages | `pdfseparate -f 1 -l 10 source.pdf page-%d.pdf` |
-| `pdfunite` | Combine pages into PDF | `pdfunite $(ls page-*.pdf \| sort -V) chunk.pdf` |
 | `pdftotext` | Extract text | `pdftotext chunk.pdf chunk.txt` |
-| `qpdf` | Direct page range extraction | `qpdf in.pdf --pages . 1-10 -- out.pdf` |
-
-**Important**: When using `pdfseparate` + `pdfunite`, always use `sort -V` (version sort) to
-order pages numerically. Shell glob `page-*.pdf` sorts lexicographically, causing `page-100.pdf`
-to appear before `page-92.pdf`.
 
 ## Notes
 
 - Page numbers in PDF tools are 1-indexed
-- Some PDFs have logical page numbers different from physical pages (e.g., front matter numbered i, ii, iii)
+- Some PDFs have logical page numbers different from physical pages (use `page_offset`)
 - Very large PDFs (500+ pages) may benefit from scripting the split
 - Always verify chunk boundaries by visual inspection

@@ -11,6 +11,7 @@ in
   # PDF tools for source preparation
   packages = [
     pkgs.poppler-utils # pdfseparate, pdfunite, pdftotext, pdfinfo
+    pkgs.qpdf # direct page range extraction
   ];
 
   # Launch a practitioner agent inside an isolated bubble

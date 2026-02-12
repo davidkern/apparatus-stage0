@@ -1,6 +1,6 @@
 # Generator: Setup Source
 
-Sets up a source directory and stages the next level's entry point.
+Sets up a recipe extraction directory for a prepared source.
 
 ## Responsibility
 
@@ -9,67 +9,76 @@ stage the prompt for the next step. Does NOT run the next step.
 
 ## Input
 
-Parameters provided in the instantiated prompt:
-- Source material location (directory of PDFs/text files)
-- Work metadata (title, author, translation)
+- **Source directory**: Path to prepared source (e.g., `reference/harris-information-graphics/`)
+- **Output directory**: Path for extraction output (e.g., `recipes/harris-information-graphics/`)
+
+The source directory must contain a valid `_source.yaml` (see `methodology/source-preparation.md`).
+Work metadata (title, author, slug, chunks) is read from `_source.yaml`.
+
+## References
+
+These paths are relative to the repository root:
+
+- Recipe schema: `research/presentation-catalog/recipes/SCHEMA.md`
+- Root context: `research/presentation-catalog/recipes/_context.md`
+- Other generators: `research/presentation-catalog/recipes/_generators/`
 
 ## Process
 
-### 1. Examine Source Material
+### 1. Read Source Metadata
 
-Look at the source material to understand:
-- How many files? (single PDF vs. multiple chunks)
-- What structure? (chapters, sections, continuous)
-- Any special considerations? (images, tables, diagrams)
+Read `_source.yaml` from the source directory to get:
+- Work title, author, edition
+- Chunk inventory (ids, pages, content descriptions)
+- Any notes about the source
 
-This examination informs what next step to stage.
+### 2. Examine Source Material
 
-### 2. Create Source Directory
+Look at the actual chunk files to understand:
+- Content type (text-heavy, graphics-heavy, mixed)
+- Structure within chunks (chapters, sections, entries)
+- Any special considerations (images, tables, diagrams requiring multimodal)
+
+### 3. Create Output Directory
 
 ```
-<source>/
+<output-dir>/
 ├── _context.md
 └── _prompt/
     └── <next-step>.md
 ```
 
-### 3. Create `_context.md`
+### 4. Create `_context.md`
 
 Document:
-- **Work Information**: Title, author, translation, structure
-- **Inventory**: What source files exist and what they contain
+- **Work Information**: Title, author, translation, structure (from _source.yaml)
+- **Chunk Inventory**: What chunks exist and what they contain (from _source.yaml)
 - **Reference System**: How to cite locations (with YAML examples)
-- **Terminology**: Technical terms, original language terms to preserve
+- **Terminology**: Technical terms, domain vocabulary to preserve
 - **Extraction Guidance**: What to look for, direction hints, patterns
 
-This is authored with judgment, not mechanically generated.
+This is authored with judgment based on examining the source, not mechanically copied.
 
-### 4. Decide and Stage Next Step
+### 5. Decide and Stage Next Step
 
 Based on source material examination:
 
 **If multiple chunks exist:**
-- Create `_prompt/generate-chunks.md` that will create chunk subdirectories
-- Reference `_generators/generate-chunk-extractions.md` for guidance
+- Create `_prompt/generate-chunks.md` referencing `_generators/generate-chunk-extractions.md`
+- Create `_prompt/consolidate.md` referencing `_generators/consolidate-source.md`
 
 **If single source file:**
-- Create `_prompt/extract.md` directly
-- Reference `_generators/extract-recipes.md` for guidance
+- Create `_prompt/extract.md` referencing `_generators/extract-recipes.md`
 
 **If special extraction needed (e.g., multimodal):**
 - Create source-specific `_generators/` directory with custom generator
 - Create `_prompt/` referencing the custom generator
 
-### 5. Stage Consolidation (if chunked)
-
-If staging chunk-based extraction, also create `_prompt/consolidate.md` that will
-run after all chunk extractions complete.
-
 ## Output
 
 ```
-<source>/
-├── _context.md                    # Source metadata and guidance
+<output-dir>/
+├── _context.md                    # Source metadata and extraction guidance
 ├── _generators/                   # (optional) Source-specific generators
 └── _prompt/
     ├── generate-chunks.md         # OR extract.md for simple sources
@@ -82,6 +91,7 @@ The task has latitude to:
 - Decide chunked vs. single extraction based on material
 - Create custom generators if source needs special handling
 - Structure `_context.md` appropriately for the specific source
+- Recommend chunk prioritization based on expected recipe density
 
 ## Next Steps (for orchestrator)
 
